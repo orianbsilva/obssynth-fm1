@@ -14,4 +14,4 @@
 - GLOBAL: MIDI channel, master tuning, velocity curve, button lights and the screen palette, kept apart from the presets.
 - USB: class-compliant USB-MIDI in, the M-UPGRADE update entry and Felucca's update loader, so the FM-1 can always leave this firmware again.
 - Flash: both FM-1 flash chips (Puya P25Q80 and the UC25HQ80 of units sold since autumn 2026).
-- Package identity FM-1_917; the release package is built and signed by GitHub from the tagged source (fm1-build).
+- Package: identity FM-1_917; built and signed by GitHub from the tagged source (fm1-build).

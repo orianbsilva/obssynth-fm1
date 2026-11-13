@@ -1,0 +1,87 @@
+/* SPDX-License-Identifier: GPL-3.0-only
+ * Drum machine fork: 2026 DEADACTIVE; ObsSynth FM-1: 2026 Orian Beltrame */
+/* The FM-1 itself, a physical thing in its own greys: drawn at its design size and scaled to fit (app.js sets
+ * --scale and places every part from layout.js). The page around it is page.css. */
+:root {
+  --body: #34343a; --body-edge: #26262a; --bed: #121213; --cap: #1d1d1f; --cap-top: #3a3833;
+  --silk: #d9d6cf; --led: #e8a33d; --hint: #b3b0a9;
+  --d25: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4' shape-rendering='crispEdges'%3E%3Crect width='2' height='2' fill='%23fff'/%3E%3C/svg%3E");
+}
+.fit { position: relative; }
+.device {
+  position: absolute; left: 0; top: 0; transform-origin: 0 0; transform: scale(var(--scale, 1));
+  background: linear-gradient(170deg, #44444b, var(--body) 40%, var(--body-edge));
+  border-radius: 44px;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 -2px 0 rgba(0, 0, 0, 0.25) inset, 0 18px 40px rgba(0, 0, 0, 0.5);
+  touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+}
+.device::after {                                 /* its plastic, dithered */
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: .06;
+  background: var(--d25) 0 0 / 4px 4px;
+}
+.device > * { position: absolute; }
+.tray { background: var(--bed); border-radius: 18px; box-shadow: 0 2px 3px rgba(0, 0, 0, 0.5) inset; }
+.tray.keybed { border-radius: 26px; }
+.bezel { background: #0b0b0c; border-radius: 22px; box-shadow: 0 0 0 3px #26262a, 0 2px 4px rgba(0, 0, 0, 0.5) inset; }
+canvas.lcd { image-rendering: pixelated; image-rendering: crisp-edges; border-radius: 4px; background: #0b0c0a; }
+
+.lbl {
+  font-family: var(--sans); font-weight: 600; font-size: 12px; letter-spacing: 1.5px; color: var(--silk);
+  text-align: center; pointer-events: none; white-space: nowrap; line-height: 1;
+}
+.enc { border-radius: 50%; cursor: ns-resize; }
+.enc .skirt {
+  position: absolute; inset: 0; border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #3a3a3d, #18181a 55%, #0c0c0d);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.5);
+}
+.enc .cap {
+  position: absolute; inset: 7px; border-radius: 50%;
+  background: repeating-conic-gradient(#18181a 0 4deg, #2a2a2c 4deg 8deg);
+  transform: rotate(var(--turn, 0deg));
+}
+.enc .cap::after {
+  content: ""; position: absolute; left: 50%; top: 3px; width: 3px; height: 11px; margin-left: -1.5px;
+  border-radius: 2px; background: var(--silk);
+}
+.enc.master .cap::after { background: #f4f2ec; height: 9px; }
+
+.btn {
+  border-radius: 9px; cursor: pointer;
+  background: linear-gradient(180deg, var(--cap-top), var(--cap));
+  box-shadow: 0 2px 0 #1c1c1c, 0 3px 5px rgba(0, 0, 0, 0.45);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--sans); font-weight: 600; font-size: 11px; letter-spacing: 1.5px; color: #9a968e;
+  transition: color 60ms;
+}
+.btn.down { transform: translateY(2px); box-shadow: 0 0 0 #1c1c1c, 0 1px 2px rgba(0, 0, 0, 0.5); }
+.btn.glow { color: #e6dcc8; text-shadow: 0 0 4px rgba(232, 163, 61, 0.35); }   /* the backlight: dim, readable */
+.btn.lit { color: var(--led); text-shadow: 0 0 6px rgba(232, 163, 61, 0.9), 0 0 14px rgba(232, 163, 61, 0.45); }
+.btn.latched { outline: 2px dashed var(--silk); outline-offset: 3px; }
+.btn small { display: block; font-size: 10px; }
+.btn .two { text-align: center; line-height: 1.15; }
+
+.key {
+  border-radius: 999px; cursor: pointer;
+  background: linear-gradient(180deg, #464646, #363636);
+  box-shadow: 0 2px 0 #191919, 0 3px 5px rgba(0, 0, 0, 0.5);
+}
+.key .stripe {
+  position: absolute; left: 50%; top: 18%; bottom: 18%; width: 5px; margin-left: -2.5px; border-radius: 3px;
+  background: #3a2c18; transition: background 50ms, box-shadow 50ms;   /* the LED off (panel_kit led_off) */
+}
+.key.down { transform: translateY(2px); box-shadow: 0 0 0 #191919, 0 1px 2px rgba(0, 0, 0, 0.5); }
+.key.glow .stripe { background: #7a5a2c; }                       /* the backlight */
+.key.lit .stripe { background: var(--led); box-shadow: 0 0 8px 2px rgba(232, 163, 61, 0.8); }
+.hint {
+  position: absolute; left: 0; right: 0; bottom: 6px; text-align: center;
+  font: 16px/1 var(--mono); color: var(--hint); pointer-events: none;
+}
+.show-hints .hint { display: block; }
+.hint { display: none; }
+.btn .hint { bottom: -18px; color: var(--silk); }
+
+.device :focus-visible { outline: 2px dashed var(--accent); outline-offset: 3px; }
+.device.powered-off canvas.lcd { opacity: .12; transition: opacity .3s; }
+.device.powered-off .lit, .device.powered-off .glow { color: inherit; text-shadow: none; }
+.device.powered-off .key.lit .stripe, .device.powered-off .key.glow .stripe { background: #3a2c18; box-shadow: none; }

@@ -37,10 +37,10 @@ $CC "${CFLAGS[@]}" -o "$OUT/host/sim_test" tests/sim_test.c -lm
 [ "$HOST_ONLY" = 1 ] && exit 0
 
 EXPORTS=(sim_init sim_render sim_frame sim_btn sim_key sim_enc sim_master sim_leds sim_key_leds sim_fb sim_audio sim_playing
-         sim_flash sim_flash_reset sim_flash_dirty sim_flash_clean sim_glow sim_key_glow sim_midi sim_preset)
+         sim_flash sim_flash_reset sim_flash_dirty sim_flash_clean sim_glow sim_key_glow sim_midi sim_preset sim_preset_name)
 $ZIG cc -target wasm32-wasi -mexec-model=reactor -O2 -Wall -Wno-unused-function "${VDEFS[@]}" "${EXPORTS[@]/#/-Wl,--export=}" \
     -I"$GEN" -Ifirmware/src -Itests -o "$OUT/fm1sim.wasm" tests/sim_core.c
-cp web/sim/* "$OUT/"
+cp web/sim/*.* "$OUT/" && mkdir -p "$OUT/img" && cp web/sim/img/* "$OUT/img/"
 # the page's "what's new" (app.js): VERSION.txt, the commit, the changelog's Unreleased and this version's notes
 COMMIT=$(git rev-parse --short HEAD 2>/dev/null || echo none)
 CDATE=$(git log -1 --format=%cs 2>/dev/null || date +%F)

@@ -120,6 +120,24 @@ uint32_t sim_preset(uint32_t idx)
     return ui.pre;
 }
 
+/* the page's preset display: the current entry's name ("F9 SUPER"), * once edited, "" when none */
+const char *sim_preset_name(void)
+{
+    static char b[20];
+    uint32_t i = 0;
+    b[0] = 0;
+    if (ui.pre != PRE_NONE && ui.pre < preset_count()) {
+        preset_name(b, ui.pre);
+        while (b[i])
+            i++;
+        if (ui.pre_ed && i < sizeof b - 1u) {
+            b[i++] = '*';
+            b[i] = 0;
+        }
+    }
+    return b;
+}
+
 int sim_midi(uint32_t status, uint32_t d1, uint32_t d2)  /* a MIDI message in, as usb.c queues it (1: queued) */
 {
     uint32_t cin = (status >> 4) & 15u;

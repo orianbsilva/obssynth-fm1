@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Drum machine fork: 2026 DEADACTIVE
-// The panel's geometry (no DOM): the FM-1's own landscape layout and the stacked portrait one phones play on,
-// the morph between them, and the hero's choreography (scroll progress -> pose). app.js applies them; node tests
-// them (tests/sim_site.mjs).
+// The panel's geometry (no DOM): the FM-1's own landscape layout and the stacked portrait one narrow screens play
+// on, and the blend between them (app.js takes one or the other: t = 0 or 1).
 import { B, KEYS } from './controls.js';
 
 // ---- layouts: design-size boxes [x, y, w, h]; the device is scaled to fit the window
@@ -69,57 +68,4 @@ export function blend(A, Bl, t) {
   for (const [k, a] of Object.entries(A.ctl)) ctl[k] = box(a, Bl.ctl[k], lag(t, k.startsWith('key') ? LAG.key : LAG.btn));
   return { W: mix(A.W, Bl.W, tb), H: mix(A.H, Bl.H, tb), deco, lcd: box(A.lcd, Bl.lcd, tb), power: box(A.power, Bl.power, tb),
            enc: boxes(A.enc, Bl.enc, lag(t, LAG.enc)), ctl };
-}
-
-// ---- the hero: scroll progress p (0 .. 1 through #hero) -> the pose. The device flies in tilted and blurred;
-// the blur ends before the shine starts (a blur filter re-renders the whole moving scene every frame, a shine
-// on top of it made Chrome stutter). Phones fly in the FM-1's own landscape form, then morph into the portrait
-// simulator once it lies flat.
-const POSE = {
-  desk: { fly: 0.9, blurEnd: 0.42, shine: [0.48, 0.88], y: 10, z: -1150, rx: 57, ry: 7, rz: -17 },
-  phone: { fly: 0.58, blurEnd: 0.36, shine: [0.4, 0.58], morph: [0.62, 0.9], y: 4, z: -650, rx: 50, ry: 0, rz: -9 },
-};
-const LAND = 0.6;                                  // the flight and the morph use the first 60 % of the track; the rest
-export function heroPose(p, phone) {               // holds the simulator flat, a long steady place to play
-  p = clamp01(p / LAND);
-  const c = POSE[phone ? 'phone' : 'desk'];
-  const m = ease(p / c.fly);
-  const morph = phone ? ease((p - c.morph[0]) / (c.morph[1] - c.morph[0])) : 0;
-  const blurT = clamp01(p / c.blurEnd);
-  const blur = blurT >= 1 ? 0 : +(9 * (1 - ease(blurT))).toFixed(2);
-  const s = clamp01((p - c.shine[0]) / (c.shine[1] - c.shine[0]));
-  return {
-    m, morph, blur,
-    dim: +(0.42 * (1 - m)).toFixed(3),
-    copy: 1 - ease(p / 0.28),
-    glare: s > 0 && s < 1 ? +Math.sin(Math.PI * s).toFixed(3) : 0,
-    sweep: s,
-    shadow: +mix(0.8, 0.3, m).toFixed(3),
-    transform: m >= 1 ? 'none'
-      : `translate3d(0, ${mix(c.y, 0, m)}vh, ${mix(c.z, 0, m)}px) rotateX(${mix(c.rx, 0, m)}deg) `
-        + `rotateY(${mix(c.ry, 0, m)}deg) rotateZ(${mix(c.rz, 0, m)}deg)`,
-    arrived: m >= 1 && (!phone || morph >= 1),
-  };
-}
-
-// ---- the body's edge for the 3D hero: the rounded outline (W x H, corner radius R) as a closed loop of straight
-// strips, clockwise from the top edge: 4 sides and N chords per corner. app.js stands a wall on each strip, the
-// body's depth deep: the same thickness a stack of full-size layers gave, at a fraction of the pixels to draw.
-export function outline(W, H, R, N) {
-  const out = [], arc = (cx, cy, from) => {
-    for (let i = 0; i < N; i++) {
-      const a0 = (from + 90 * i / N) * Math.PI / 180, a1 = (from + 90 * (i + 1) / N) * Math.PI / 180;
-      out.push({ x0: cx + R * Math.cos(a0), y0: cy + R * Math.sin(a0), x1: cx + R * Math.cos(a1), y1: cy + R * Math.sin(a1) });
-    }
-  };
-  out.push({ x0: R, y0: 0, x1: W - R, y1: 0 });
-  arc(W - R, R, -90);
-  out.push({ x0: W, y0: R, x1: W, y1: H - R });
-  arc(W - R, H - R, 0);
-  out.push({ x0: W - R, y0: H, x1: R, y1: H });
-  arc(R, H - R, 90);
-  out.push({ x0: 0, y0: H - R, x1: 0, y1: R });
-  arc(R, R, 180);
-  for (const s of out) for (const k of ['x0', 'y0', 'x1', 'y1']) s[k] = Math.round(s[k] * 1e9) / 1e9;
-  return out;
 }

@@ -1,0 +1,168 @@
+/* SPDX-License-Identifier: GPL-3.0-only
+ * ObsSynth FM-1: 2026 Orian Beltrame */
+/* The page in the ObsSynth panels' language (the synth repository's src/app/common/panel_kit.hpp): a top bar with
+ * the wordmark and a preset display, then panels with spaced capital headers and a tag on the right, amber for what
+ * is on. The colours are the panels' palettes (builtin_palettes.hpp): OBS by default, the Carbonian ones chosen in
+ * the footer (app.js LOOKS). The FM-1 keeps its own greys (device.css). */
+:root {
+  --bg: #121213; --surface: #232327; --surface-2: #2c2c31; --line: #3a3a40; --idle: #0b0c0a;
+  --accent: #e8a33d; --ink: #d9d6cf; --muted: #8d8a84;
+  --sans: "Inter", "DejaVu Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", "DejaVu Sans Mono", ui-monospace, monospace;
+  color-scheme: dark;
+}
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.55 var(--sans); }
+a { color: var(--accent); }
+button, select, input { font: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ---- the top bar: the wordmark, where to go, the preset display, the power switch */
+.topbar {
+  position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 24px; padding: 10px 24px;
+  background: linear-gradient(180deg, var(--surface-2), var(--bg)); border-bottom: 1px solid var(--line);
+}
+.wordmark { font: 300 22px/1 var(--sans); letter-spacing: 6px; color: var(--ink); text-decoration: none; white-space: nowrap; }
+.wordmark b { font-weight: 700; color: var(--accent); letter-spacing: 4px; }
+.tabs { display: flex; gap: 18px; }
+.tabs a { font: 600 12px/1 var(--sans); letter-spacing: 3px; text-transform: uppercase; color: var(--muted); text-decoration: none; padding: 6px 0;
+  border-bottom: 2px solid transparent; }
+.tabs a:hover, .tabs a.on { color: var(--ink); border-bottom-color: var(--accent); }
+.display {                                       /* the preset display, as on the panels: dark, the name in accent */
+  margin-left: auto; display: flex; align-items: center; gap: 4px; min-width: 260px; padding: 4px 6px;
+  background: var(--idle); border: 1px solid var(--line); border-radius: 6px;
+}
+.display button { border: 0; background: none; color: var(--accent); cursor: pointer; padding: 4px 10px; font-size: 13px; }
+.display button:disabled { color: var(--line); cursor: default; }
+.display .what { flex: 1; text-align: center; line-height: 1.15; }
+.display .what small { display: block; font: 10px/1.2 var(--mono); letter-spacing: 2px; color: var(--muted); }
+.display .what span { font: 500 15px/1.3 var(--mono); color: var(--accent); }
+.power { display: flex; align-items: center; gap: 10px; font: 600 11px/1 var(--sans); letter-spacing: 2px; color: var(--muted); }
+.power-toggle {
+  position: relative; width: 44px; height: 24px; padding: 0; border-radius: 999px; cursor: pointer;
+  background: var(--idle); border: 1px solid var(--line); transition: background .2s, border-color .2s;
+}
+.power-toggle .knob { position: absolute; left: 3px; top: 3px; width: 16px; height: 16px; border-radius: 50%;
+  background: var(--muted); transition: transform .2s, background .2s; }
+.power-toggle.on { background: var(--accent); border-color: var(--accent); }
+.power-toggle.on .knob { transform: translateX(20px); background: var(--bg); }
+.power-toggle.ready { box-shadow: 0 0 0 0 var(--accent); animation: ping 2.4s ease-out infinite; }
+@keyframes ping { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent); } 70%, 100% { box-shadow: 0 0 0 10px transparent; } }
+.power-toggle:disabled { cursor: progress; opacity: .6; }
+.lang { display: flex; gap: 12px; font: 600 12px/1 var(--sans); letter-spacing: 2px; }
+.lang a { color: var(--muted); text-decoration: none; }
+.lang a:hover { color: var(--accent); }
+
+/* ---- panels: a header line (title left, tag right), then their content */
+main { max-width: 1480px; margin: 0 auto; padding: 16px 16px 0; display: grid; gap: 14px; }
+.panel {
+  background: linear-gradient(180deg, var(--surface-2), var(--surface)); border: 1px solid var(--line);
+  border-radius: 10px; padding: 12px 16px 16px; min-width: 0;
+}
+.panel > header, .sub > header {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 16px;
+  padding-bottom: 8px; margin-bottom: 12px; border-bottom: 1px solid var(--line);
+}
+.panel h2, .sub h3 { margin: 0; font: 600 13px/1.4 var(--sans); letter-spacing: 3px; text-transform: uppercase; color: var(--ink); }
+.tag { font: 500 11px/1.4 var(--mono); letter-spacing: 2px; color: var(--muted); text-transform: uppercase; text-align: right; }
+.tag.led::before { content: ""; display: inline-block; width: 7px; height: 7px; margin-right: 8px; border-radius: 50%;
+  background: var(--line); vertical-align: 1px; }
+.tag.led.on::before { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+.panel p { margin: 0 0 8px; color: var(--muted); }
+.panel p b, .panel li b { color: var(--ink); font-weight: 600; }
+.btn-ui {                                        /* the panels' small buttons: dark, the accent when on */
+  border: 1px solid var(--line); border-radius: 5px; background: var(--idle); color: var(--ink); cursor: pointer;
+  padding: 5px 14px; font: 600 11px/1.4 var(--sans); letter-spacing: 2px; text-transform: uppercase;
+}
+.btn-ui:hover { border-color: var(--accent); color: var(--accent); }
+.btn-ui.on, .btn-ui[aria-pressed="true"], .btn-ui[aria-expanded="true"] { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+
+/* ---- the first row: the clips, the FM-1 */
+.intro { margin: 2px 4px 0; color: var(--muted); }
+.intro b { color: var(--ink); font-weight: 600; }
+.play-row { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 14px; align-items: start; }
+.clips { display: grid; gap: 10px; }
+.clips .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.clips label { display: flex; gap: 8px; align-items: center; font: 600 11px/1.4 var(--sans); letter-spacing: 2px;
+  text-transform: uppercase; color: var(--muted); }
+.clips select { background: var(--idle); color: var(--ink); border: 1px solid var(--line); border-radius: 5px; padding: 3px; font: 13px/1.5 var(--mono); }
+.clips #clip-sel { width: 100%; }
+.clips #clip-sel option { padding: 3px 6px; }
+.clips #clip-sel option:checked { background: var(--accent); color: var(--bg); }
+.clips input[type="checkbox"] { accent-color: var(--accent); }
+.clips-status { margin: 0; min-height: 3em; font: 12px/1.5 var(--mono); color: var(--muted); }
+.instrument .stage { position: relative; display: flex; justify-content: center; padding: 8px 0 4px; }
+.instrument .status { margin: 0; min-height: 1.5em; color: var(--muted); font: 13px/1.5 var(--mono); }
+.instrument .tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; margin-top: 8px; }
+.instrument .tools .left, .instrument .tools .right { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.confirm { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; color: var(--ink); }
+.confirm[hidden] { display: none; }
+
+/* ---- sounds: one card per engine, its screen, a demo */
+.sounds { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.sound { display: grid; gap: 8px; align-content: start; padding: 12px; background: var(--idle); border: 1px solid var(--line); border-radius: 8px; }
+.sound img { width: 100%; max-width: 240px; aspect-ratio: 1; image-rendering: pixelated; border-radius: 4px; justify-self: center; }
+.sound h3 { margin: 0; font: 600 13px/1.4 var(--sans); letter-spacing: 3px; color: var(--ink); }
+.sound h3 span { color: var(--accent); font: 500 11px/1 var(--mono); letter-spacing: 2px; margin-left: 8px; }
+.sound p { margin: 0; color: var(--muted); font-size: 14px; }
+.sound .btn-ui { justify-self: start; }
+
+/* ---- the manual: the controls, then one panel per page of the screen */
+.manual-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.sub { padding: 12px 14px; background: var(--idle); border: 1px solid var(--line); border-radius: 8px; }
+.sub.wide { grid-column: 1 / -1; }
+.sub p { margin: 0 0 8px; color: var(--muted); font-size: 14px; }
+.knobs { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; padding: 0; list-style: none; }
+.knobs li { font: 500 11px/1 var(--mono); letter-spacing: 1px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 4px; color: var(--ink); }
+.knobs li i { font-style: normal; color: var(--muted); margin-right: 6px; }
+.controls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 28px; }
+.controls h4 { margin: 4px 0 6px; font: 600 11px/1.4 var(--sans); letter-spacing: 3px; color: var(--accent); }
+.controls ul { list-style: none; margin: 0 0 8px; padding: 0; }
+.controls li { padding: 5px 0; border-top: 1px solid var(--line); color: var(--muted); font-size: 14px; }
+.controls li b { font: 600 12px/1 var(--mono); color: var(--ink); margin-right: 6px; }
+
+/* ---- install, what's new */
+.two-col { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; align-items: start; }
+.steps { margin: 0 0 12px; padding-left: 20px; color: var(--muted); }
+.steps li { margin-bottom: 6px; }
+.steps b { color: var(--ink); }
+.panel details { border-top: 1px solid var(--line); padding: 8px 0; }
+.panel summary { cursor: pointer; color: var(--ink); }
+.panel details p { margin-top: 6px; }
+.risk { font-size: 13px; }
+.fw-version { font: 12px/1.5 var(--mono); }
+.whats-new { list-style: none; margin: 0; padding: 0; }
+.whats-new li { padding: 6px 0; border-top: 1px solid var(--line); color: var(--muted); font-size: 14px; }
+.whats-new li b { color: var(--ink); font-weight: 600; }
+code { font: 13px var(--mono); color: var(--ink); }
+
+/* ---- the footer: the credits, the look */
+.foot { max-width: 1480px; margin: 14px auto 0; padding: 18px 20px 28px; display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 24px;
+  border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+.foot p { margin: 0 0 6px; }
+.looks { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: flex-end; align-content: start; }
+.looks span { font: 600 11px/1 var(--sans); letter-spacing: 2px; margin-right: 4px; }
+.looks button { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line); cursor: pointer; padding: 0; }
+.looks button[aria-pressed="true"] { border-color: var(--ink); }
+
+/* ---- narrower screens */
+@media (max-width: 1180px) {
+  .play-row { grid-template-columns: minmax(0, 1fr); }
+  .play-row .clips { order: 2; }
+  .sounds { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .manual-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 860px) {
+  .topbar { flex-wrap: wrap; gap: 10px 16px; padding: 10px 14px; }
+  .tabs { order: 3; width: 100%; justify-content: space-between; }
+  .display { margin-left: 0; order: 4; width: 100%; min-width: 0; }
+  .manual-grid, .two-col, .controls { grid-template-columns: minmax(0, 1fr); }
+  .foot { grid-template-columns: minmax(0, 1fr); }
+  .looks { justify-content: flex-start; }
+}
+@media (max-width: 520px) {
+  .sounds { grid-template-columns: minmax(0, 1fr); }
+  main { padding: 10px 8px 0; }
+  .panel { padding: 10px 10px 12px; }
+}
+@media (prefers-reduced-motion: reduce) { .power-toggle.ready { animation: none; } }

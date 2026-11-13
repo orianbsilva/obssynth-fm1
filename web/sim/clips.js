@@ -115,7 +115,9 @@ export function play(clip, send, ch = 1, loop = false, ended = () => {}) {
 // ---- the panel: a clip, where to (the simulator, or a MIDI output), a channel, loop, play / stop
 export const DEFAULT_CLIP = 'Acid 16';                             // the one selected when the page opens
 
-export async function initClips(sendSim) {
+// initClips(sendSim, ready): ready() switches the simulator on (the page's power) before a clip goes into it;
+// returns playNamed(name), which plays a clip into the simulator by its name (the Sounds cards)
+export function initClips(sendSim, ready = async () => {}) {
   const sel = document.getElementById('clip-sel'), dest = document.getElementById('clip-dest');
   const chSel = document.getElementById('clip-ch'), loopBox = document.getElementById('clip-loop');
   const playBtn = document.getElementById('clip-play'), stopBtn = document.getElementById('clip-stop');
@@ -157,8 +159,9 @@ export async function initClips(sendSim) {
   dest.addEventListener('focus', midi);
   dest.addEventListener('pointerdown', midi);
   document.getElementById('clip-midi').addEventListener('click', midi);
-  playBtn.addEventListener('click', () => {
+  playBtn.addEventListener('click', async () => {
     const c = CLIPS[Number(sel.value)];
+    if (dest.value === 'sim') await ready();
     if (c.preset != null && dest.value === 'sim') sendSim({ t: 'preset', idx: c.preset });   // its sound first
     play(c, sender(), Number(chSel.value), loopBox.checked, () => { status.textContent = tr('Done.', 'Fim.'); });
     const to = dest.options[dest.selectedIndex].text;
@@ -184,9 +187,17 @@ export async function initClips(sendSim) {
         send = (st, d1, d2) => o.send([st, d1, d2]);
       }
       if (c.preset != null && to === 'sim') sendSim({ t: 'preset', idx: c.preset });
+      if (to === 'sim') await ready();
       play(c, send, ch, loop);
       return tr(`playing ${c.name}`, `tocando ${c.name}`);
     },
     stop,
+  };
+  return name => {                                                     // a clip by its name, into the simulator
+    const i = CLIPS.findIndex(c => c.name === name);
+    if (i < 0) return;
+    sel.value = String(i);
+    dest.value = 'sim';
+    playBtn.click();
   };
 }

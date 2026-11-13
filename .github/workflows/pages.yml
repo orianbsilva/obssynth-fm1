@@ -32,7 +32,7 @@ jobs:
       - name: The site (the page only)
         run: |
           mkdir -p site
-          cp build/sim/*.html build/sim/*.js build/sim/*.css build/sim/*.json build/sim/fm1sim.wasm site/
+          cp -r build/sim/*.html build/sim/*.js build/sim/*.css build/sim/*.json build/sim/fm1sim.wasm build/sim/img site/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site

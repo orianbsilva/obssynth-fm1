@@ -1,371 +1,223 @@
 <!doctype html>
 <!-- SPDX-License-Identifier: GPL-3.0-only
-     Drum machine fork: 2026 DEADACTIVE; ObsSynth FM-1: 2026 Orian Beltrame -->
+     ObsSynth FM-1: 2026 Orian Beltrame. The FM-1 panel drawing and simulator glue descend from Hortator (DEADACTIVE)
+     and Felucca (Leo Kuroshita, Hügelton Instruments). -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>ObsSynth FM-1: a synthesizer inside the M-VAVE FM-1</title>
-<meta name="description" content="ObsSynth FM-1 turns the M-VAVE FM-1 into a synthesizer: two oscillators, a filter with its own envelope, an amp envelope, two LFOs, delay, reverb and chorus, four voices. Play the real firmware in your browser.">
+<title>ObsSynth FM-1: a synthesizer firmware for the M-VAVE FM-1</title>
+<meta name="description" content="ObsSynth FM-1 turns the M-VAVE FM-1 into a four-voice synthesizer: two oscillators per voice (STD, SUPER, WT, GRAIN), a multimode filter, two envelopes, two LFOs, unison, delay, reverb and chorus. Play the real firmware in your browser.">
+<link rel="alternate" hreflang="en" href="index.html">
+<link rel="alternate" hreflang="pt-BR" href="pt.html">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-<link rel="stylesheet" href="sim.css">
-<link rel="alternate" hreflang="en" href="index.html">
-<link rel="alternate" hreflang="pt-BR" href="pt.html">
+<link rel="stylesheet" href="page.css">
+<link rel="stylesheet" href="device.css">
 </head>
 <body>
-<section id="hero" class="hero" aria-label="ObsSynth FM-1">
-  <div class="hero-stage" id="stage">
-    <nav class="hero-nav">
-      <span class="silk">OBSSYNTH <span class="mark">FM-1</span></span>
-      <span class="nav-links"><a href="pt.html" hreflang="pt-BR" lang="pt-BR">Português</a><a href="#manual">Manual</a><a href="https://github.com/orianbsilva/obssynth-fm1" target="_blank" rel="noopener">Code</a></span>
-    </nav>
-
-    <div class="desk-shadow" id="desk-shadow"></div>
-    <div class="scene" id="scene">
-      <div class="tilt" id="tilt">
-        <div id="fit" class="fit">
-          <div id="device" class="device" aria-label="The FM-1 panel"></div>
+<header class="topbar">
+  <a class="wordmark" href="#play">OBSSYNTH <b>FM1</b></a>
+  <nav class="tabs"><a href="#play">Play</a><a href="#sounds">Sounds</a><a href="#manual">Manual</a><a href="#install">Install</a></nav>
+  <div class="display" aria-live="polite">
+    <button type="button" id="pre-prev" aria-label="Previous preset" disabled>◀</button>
+    <div class="what"><small>PRESET</small><span id="pre-name">—</span></div>
+    <button type="button" id="pre-next" aria-label="Next preset" disabled>▶</button>
+  </div>
+  <div class="power">POWER<button type="button" class="power-toggle" id="power-on" role="switch" aria-checked="false" aria-label="POWER" disabled><span class="knob"></span></button></div>
+  <nav class="lang"><a href="pt.html" hreflang="pt-BR" lang="pt-BR">Português</a><a href="https://github.com/orianbsilva/obssynth-fm1" target="_blank" rel="noopener">Code</a></nav>
+</header>
+<main>
+  <p class="intro"><b>ObsSynth FM-1</b> is a synthesizer firmware for the M-VAVE FM-1. This is the real firmware, compiled to WebAssembly: switch it on and play it with the mouse, the computer keyboard or a clip.</p>
+  <div class="play-row" id="play">
+    <section class="panel clips" id="clips" aria-label="Clips">
+      <header><h2>Clips</h2><span class="tag">MIDI · loop</span></header>
+      <p class="clips-sub">Into the simulator, or into an FM-1 over USB. The acid ones play on F9 SUPER.</p>
+      <div class="row">
+        <button type="button" class="btn-ui" id="clip-play">Play</button>
+        <button type="button" class="btn-ui" id="clip-stop">Stop</button>
+        <label><input type="checkbox" id="clip-loop" checked> Loop</label>
+      </div>
+      <label for="clip-sel">Clip</label>
+      <select id="clip-sel" size="10"></select>
+      <div class="row">
+        <label>To <select id="clip-dest"></select></label>
+        <label>Channel <select id="clip-ch"></select></label>
+      </div>
+      <div class="row"><button type="button" class="btn-ui" id="clip-midi" title="Asks the browser for access to the MIDI ports">MIDI ports</button></div>
+      <p id="clip-status" class="clips-status" role="status">Pick one and Play (or double-click it).</p>
+    </section>
+    <section class="panel instrument" aria-label="FM-1">
+      <header><h2>FM-1</h2><span class="tag led" id="inst-tag">Simulator</span></header>
+      <p class="status"><span id="power-note">Loading…</span> <span id="note" role="status"></span></p>
+      <div class="stage" id="stage"><div id="fit" class="fit"><div id="device" class="device" aria-label="The FM-1 panel"></div></div></div>
+      <div class="tools">
+        <div class="left"><button type="button" class="btn-ui" id="help-toggle" aria-expanded="false" title="Show the computer keyboard on the panel">Keys</button></div>
+        <div class="right">
+          <div id="reset-confirm" class="confirm" role="dialog" aria-label="Start over" hidden>
+            <span>Erase what this browser saved and start the FM-1 from scratch?</span>
+            <button type="button" class="btn-ui" id="reset-yes">Erase and start over</button>
+            <button type="button" class="btn-ui" id="reset-no">Keep</button>
+          </div>
+          <button type="button" class="btn-ui" id="reset" aria-haspopup="dialog">Start over</button>
         </div>
       </div>
-    </div>
-    <div class="scene-dim" aria-hidden="true"></div>
-    <div class="power-ui" id="power-ui">                <!-- placed by app.js: a line from the FM-1's own switch -->
-      <span class="power-lead" id="power-lead" aria-hidden="true"></span>
-      <button type="button" class="power-toggle" id="power-on" role="switch" aria-checked="false" aria-label="Power"
-        disabled><span class="knob"></span></button>
-      <span class="power-label" id="power-label">Power</span>
-    </div>
-
-    <div class="hero-copy" id="hero-copy">
-      <h1>A synthesizer inside the M&#8209;VAVE&nbsp;FM&#8209;1.</h1>
-      <p>The ObsSynth engine in fixed point, on the FM&#8209;1's hardware: oscillators, filter, envelopes, LFOs, delay
-        and reverb, played on the 27 keys and edited with the four knobs. Scroll down to play the real firmware in your browser.</p>
-      <p class="hero-count"><b>2</b> oscillators, each STD (<b>8</b> waveforms), SUPER (<b>7</b> saws),
-        WT (<b>4</b> wavetable banks) or GRAIN (<b>3</b> samples in grains), a <b>12 dB</b> filter, <b>2</b>
-        ADSR envelopes, <b>2</b> LFOs, delay, reverb and stereo chorus, <b>4</b> voices (or all four on one note,
-        in unison), <b>14</b> factory presets and <b>16</b> of your own.</p>
-      <p class="hero-actions">
-        <a class="cta" href="#play">Play</a>
-        <span class="cta-slot"><a class="cta ghost" href="https://github.com/orianbsilva/obssynth-fm1" target="_blank" rel="noopener">See the code</a><span class="install-count" id="install-count" hidden></span></span>
-      </p>
-    </div>
-    <p class="scroll-cue" id="scroll-cue" aria-hidden="true">Scroll</p>
-
-    <div class="play-bar" id="play-bar">
-      <p id="note" class="note" role="status"></p>
-      <span class="power-note" id="power-note">Loading…</span>
-      <button type="button" class="bar-btn" id="help-toggle" aria-expanded="false" aria-controls="help">Controls</button>
-      <button type="button" class="bar-btn" id="clips-toggle" aria-expanded="false" aria-controls="clips">Clips</button>
-      <button type="button" class="bar-btn" id="reset" aria-haspopup="dialog">Start over</button>
-      <div id="reset-confirm" class="confirm" role="dialog" aria-label="Start over" hidden>
-        <p>Erase what this browser saved and start the FM&#8209;1 from scratch?</p>
-        <button type="button" id="reset-yes">Erase and start over</button>
-        <button type="button" id="reset-no">Keep</button>
-      </div>
-    </div>
-    <div id="clips" class="clips" role="dialog" aria-label="MIDI clips" hidden>
-      <p class="clips-title">MIDI clips</p>
-      <p class="clips-sub">Into the simulator, or into an FM-1 over USB. The acid ones play on F9 SUPER.</p>
-      <button type="button" id="clip-play">Play</button>
-      <button type="button" id="clip-stop">Stop</button>
-      <label class="clips-loop"><input type="checkbox" id="clip-loop" checked> Loop</label>
-      <label class="clips-pick">Clip <select id="clip-sel"></select></label>
-      <label>To <select id="clip-dest"></select></label>
-      <label>Channel <select id="clip-ch"></select></label>
-      <button type="button" id="clip-midi" title="Asks the browser for access to the MIDI ports">MIDI ports</button>
-      <p id="clip-status" class="clips-status" role="status">Pick one and Play (or double-click it).</p>
-    </div>
-    <a class="more-cue" id="more-cue" href="#manual">More below<span aria-hidden="true">↓</span></a>
-    <div id="help" class="help" hidden>
-      <div>
-        <h2>Mouse and touch</h2>
-        <ul>
-          <li>Keys and buttons play while pressed, several at once.</li>
-          <li>Knobs: drag up or down, use the mouse wheel, or hover and use ↑ ↓.</li>
-          <li>To hold a button (OCT− + OCT+), right-click it or press and hold; tap again to release.</li>
-        </ul>
-      </div>
-      <div>
-        <h2>Getting around</h2>
-        <ul>
-          <li>By section: SEL toggles OSC 1 and OSC 2; EDIT, AMP and AMP ENV; SEQ, FILTER and FILTER ENV. SELECT steps
-            through all of them in order: OSC 1, OSC 2, AMP, AMP ENV, FILTER, FILTER ENV.</li>
-          <li>ENV: AMP ENV and FILTER ENV; LFO: LFO 1 and LFO 2; FX: DELAY, REVERB and CHORUS; GLO: GLOBAL and GLOBAL 2.
-            Each button cycles through its own pages.</li>
-          <li>KNOB1 to KNOB4 edit the four values; HOME turns SHIFT on and off: the module's + page, with four more
-            parameters, stays on screen until HOME again or another page.</li>
-          <li>PRESETS changes the preset; SAVE, then SAVE again, stores the sound in a slot.</li>
-        </ul>
-      </div>
-      <div>
-        <h2>Computer keyboard</h2>
-        <ul>
-          <li>Lower keys: Z X C V B N M , . / and S D F H J L ; '</li>
-          <li>Upper keys: Q W E R T Y and 3 4 6.</li>
-          <li>Esc HOME, ← OCT−, → OCT+.</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-  <span class="hero-end" id="play" aria-hidden="true"></span>
-</section>
-
-<section id="manual" class="manual" aria-labelledby="manual-title">
-  <header class="manual-head">
-    <h2 id="manual-title">How to play.</h2>
-    <p>Every control, then the path of a sound. Everything works in the simulator above as on the FM&#8209;1. The
-      buttons not listed here have no function yet.</p>
-  </header>
-
-  <div class="panel-map">
-    <div class="map-stage">
-      <div class="map-device" id="manual-mini" aria-hidden="true"></div>
-      <p class="map-caption" id="map-caption">Point at a control, or at a line of the list.</p>
-    </div>
-    <div class="map-list" id="map-list">
-      <h3>Knobs</h3>
-      <ul>
-        <li data-ctl="MASTER"><b>MASTER</b> The volume: the speaker and the headphones.</li>
-        <li data-ctl="ALGORITHM"><b>ALGORITHM</b> The engine of the page's oscillator: STD (eight waveforms), SUPER
-          (seven detuned saws), WT (wavetable) or GRAIN (granular). On the OSC 2 page, OSC 2's; on the others, OSC 1's.</li>
-        <li data-ctl="SELECT"><b>SELECT</b> Changes the page: OSC 1, OSC 2, AMP, AMP ENV, FILTER and FILTER ENV. On an LFO
-          or FX page, it goes back to the page you were on.</li>
-        <li data-ctl="PRESETS"><b>PRESETS</b> The next or the previous preset: the factory ones (F1 to F14), then
-          yours (U01 to U16). It loads at once; the name shows under the title, with a * after you turn a knob.</li>
-        <li data-ctl="KNOB1 KNOB2 KNOB3 KNOB4"><b>KNOB1</b> to <b>KNOB4</b> Edit the four values on screen, left to
-          right. Turned fast, the step doubles.</li>
-      </ul>
-      <h3>Buttons</h3>
-      <ul>
-        <li data-ctl="HOME"><b>HOME</b> SHIFT, on and off: the + page of the module on screen (OSC 1 +, FILTER
-          + …), with four more parameters on the knobs, stays until HOME again (or another page); its LED lit meanwhile.</li>
-        <li data-ctl="SEL"><b>SEL</b> Toggles OSC 1 and OSC 2.</li>
-        <li data-ctl="EDIT"><b>EDIT</b> Toggles AMP (VOL, VEL, MODE, VOICE) and AMP ENV.</li>
-        <li data-ctl="SEQ"><b>SEQ</b> Toggles FILTER and FILTER ENV.</li>
-        <li data-ctl="ENV"><b>ENV</b> Toggles AMP ENV and FILTER ENV: a shortcut between the two envelopes.</li>
-        <li data-ctl="SAVE"><b>SAVE</b> Opens the SAVE page. SAVE again stores to the same slot, with the same name. To
-          save as: KNOB1 picks another slot (U01 to U16; OVER warns it holds one already), KNOB2 the position and KNOB3
-          the letter of the name, then SAVE. SELECT or another page's button leave without saving.</li>
-        <li data-ctl="GLO"><b>GLO</b> GLOBAL, the settings of the device rather than the sound: MIDI channel, master
-          tuning, velocity curve and button lights; GLO again, GLOBAL 2: the screen's palette. Saved on leaving. With
-          HOME: INFO (version, build, presets, flash).</li>
-        <li data-ctl="FX"><b>FX</b> DELAY, REVERB and CHORUS, in turn. Its LED stays lit on the effect pages.</li>
-        <li data-ctl="LFO"><b>LFO</b> Toggles LFO 1 and LFO 2. Its LED stays lit while an LFO is on screen.</li>
-        <li data-ctl="OCT- OCT+"><b>OCT-</b> <b>OCT+</b> The keyboard an octave down or up, from −2 to +2; the LED on
-          that side lights away from the centre. Both together for 5 s: update mode.</li>
-      </ul>
-      <h3>Keys</h3>
-      <ul>
-        <li data-ctl="white">The 16 white keys: the natural notes, F3 to G5 (with the octave at the centre).</li>
-        <li data-ctl="black">The 11 black keys: the sharps. Up to four notes sound together; a fifth takes the
-          oldest released voice.</li>
-      </ul>
-    </div>
+    </section>
   </div>
 
-  <ol class="guides">
-    <li class="guide" id="m-around">
-      <h3>Find your way</h3>
-      <p>The screen shows one page at a time: its name on top, with the octave, the voices sounding and the CPU, the
-        four values below it, and the page's picture at the bottom. SELECT moves from page to page; the four knobs edit
-        the four columns, in order.</p>
-      <p class="where"><b>SELECT</b> the pages, <b>KNOB1</b> to <b>KNOB4</b> the values, <b>HOME</b> the + page.</p>
-    </li>
-    <li class="guide" id="m-osc">
-      <h3>Pick the wave</h3>
-      <p>OSC 1 is the source. WAVE picks SAW, the brightest, SQR, hollow, TRI, soft, or SIN, pure (and four more,
-        below); SAW and SQR are band-limited, with no aliasing up high. TUNE transposes in semitones, ±24. GLIDE makes
-        each new note slide from the last, from instant to almost a second. SUB adds an oscillator an octave below; the
-        synth's level, VOL, is on the AMP page (EDIT).</p>
-      <p class="where"><b>SEL</b> (OSC 1): <b>KNOB1</b> WAVE, <b>KNOB2</b> TUNE, <b>KNOB3</b> GLIDE, <b>KNOB4</b> SUB.</p>
-    </li>
-    <li class="guide" id="m-engines">
-      <h3>Change the engine</h3>
-      <p>Turn ALGORITHM on an oscillator page and it changes engine; the title shows which. STD is eight waves: SAW, SQR, TRI, SIN, RAMP (a falling saw),
-        FOLD (a folded sine), FM (a sine modulated by its own octave) and OCT (a saw plus a saw an octave up); the
-        OSC + page's PW becomes SHAPE and shapes each of them (SQR's width, TRI's symmetry, how far FOLD folds, FM's
-        index, OCT's octave level). SUPER is seven saws, one in the centre and six detuned around it: the first knob becomes DETUN (how far
-        they spread) and, with HOME, SIDE (the level of the outer ones). WT reads a wavetable: the first knob becomes
-        POS, the position in the table, and with HOME, TABLE picks the bank (BASIC, S>SAW, HARM, MORPH). The screen shows
-        the wave at that position and a ruler of the table with a marker, which moves by itself when an LFO moves POS. An LFO
-        with DEST POS sweeps the table on its own (the WAVES preset).</p>
-      <p>GRAIN plays a sample (ORGAN, BELL or VOX, a voice moving through the vowels) in grains: short slices, each
-        with its own window, at the note's pitch. The first knob is POS, where the grains come from; with HOME, SMPL the
-        sample, SIZE each grain's length (10 to 500 ms), DENS how many per second and SPRAY how far each one strays
-        around POS, at random. The screen shows the sample and, while a note sounds, the live grains: each window's arc
-        below and, on the sample, a bar where it is reading, as wide as the window is open. An LFO on POS wanders
-        through the sample (the GRAINS and CHIMES presets).</p>
-      <p class="where"><b>ALGORITHM</b> the engine; <b>KNOB1</b> WAVE / DETUN / POS / POS; <b>HOME</b>:
-        <b>KNOB1</b> PW / SIDE / TABLE, and on GRAIN all four: SMPL SIZE DENS SPRAY.</p>
-    </li>
-    <li class="guide" id="m-osc2">
-      <h3>Add the second oscillator</h3>
-      <p>OSC 2 is a second oscillator in each voice, mixed with the first before the filter. SEMI moves it in
-        semitones (±24: a fifth, an octave), FINE detunes it slightly, up to about 32 cents, for the "fat" sound of two
-        oscillators. MIX sets how much of it you hear: at 0 only OSC 1, at 127 only OSC 2.</p>
-      <p class="where"><b>SEL</b> twice (OSC 2): <b>KNOB1</b> WAVE, <b>KNOB2</b> SEMI, <b>KNOB3</b> FINE,
-        <b>KNOB4</b> MIX.</p>
-    </li>
-    <li class="guide" id="m-amp">
-      <h3>Shape the volume</h3>
-      <p>AMP ENV is each note's volume envelope. ATK is the rise, from 1 ms to about 4 s; DEC the fall to SUS, the
-        level held while the key is down; REL the fall after you let go. With SUS at 0 the note sounds like a
-        percussion and ends by itself.</p>
-      <p class="where"><b>ENV</b> (or <b>SELECT</b> to AMP ENV): <b>KNOB1</b> ATK, <b>KNOB2</b> DEC, <b>KNOB3</b> SUS,
-        <b>KNOB4</b> REL.</p>
-    </li>
-    <li class="guide" id="m-filter">
-      <h3>Close the filter</h3>
-      <p>FILTER is a 12 dB low-pass (24 dB with FILTER +'s SLOPE), from 50 Hz to 18 kHz. CUT is the cutoff; RESO the
-        resonance, which lifts the cutoff until it almost sings. ENV sets how far the filter envelope opens (or, negative,
-        closes) the cutoff on each note. KEY makes the cutoff follow the note: at 100% it rises an octave for each octave
-        played, so high notes are not muffled.</p>
-      <p class="where"><b>SEQ</b> (FILTER): <b>KNOB1</b> CUT, <b>KNOB2</b> RESO, <b>KNOB3</b> ENV,
-        <b>KNOB4</b> KEY.</p>
-    </li>
-    <li class="guide" id="m-fenv">
-      <h3>Move the filter</h3>
-      <p>FILTER ENV is a second ADSR, for the filter only. With CUT low, ENV high and a short DEC, each note starts
-        open and closes at once: a bass "pluck". With a long ATK, the sound opens slowly, like a pad.</p>
-      <p class="where"><b>ENV</b> twice (or <b>SELECT</b> to FILTER ENV): <b>KNOB1</b> ATK, <b>KNOB2</b> DEC, <b>KNOB3</b> SUS,
-        <b>KNOB4</b> REL.</p>
-    </li>
-    <li class="guide" id="m-lfo">
-      <h3>Add movement</h3>
-      <p>Two LFOs, each with one destination. WAVE picks SIN, TRI, SAW, SQR or S&amp;H (a random level each cycle);
-        RATE goes from 0.05 to 40 Hz; DEST picks what it moves: PITCH (vibrato, up to ±12 semitones), CUT (the filter
-        opening and closing), RESO, AMP (tremolo), MIX (between the two oscillators), POS (WT and GRAIN), or a single
-        oscillator: PIT1 / PIT2 (one's pitch), SHP1 / SHP2 (its SHAPE, the PW), POS1 / POS2, DET1 / DET2 (SUPER's
-        DETUN), and NOISE. DEPTH is how much, one way or the other. Both LFOs can move the same destination: their
-        effects add up. The screen shows the wave as tall as DEPTH, the destination spelled out and a dot where it is now.</p>
-      <p class="where"><b>LFO</b> (again: LFO 2): <b>KNOB1</b> WAVE, <b>KNOB2</b> RATE, <b>KNOB3</b> DEST,
-        <b>KNOB4</b> DEPTH.</p>
-    </li>
-    <li class="guide" id="m-fx">
-      <h3>Give it space</h3>
-      <p>After the voices, a delay and a reverb, Hortator's. DELAY repeats the sound: TIME goes from 10 ms to 1.5 s,
-        FDBK sets how many repeats, COLR darkens each one (0 dark, 127 open) and MIX is the echoes' level. REVERB is a
-        room: SIZE its size, DAMP how fast the highs die, DLY sends the delay's echoes into the room and MIX is its
-        level. With both MIX at 0 the sound comes out dry.</p>
-      <p>CHORUS, the third page, is stereo: two reads of a short line, swayed by a slow LFO, one for each side. RATE
-        is the speed, DEPTH how far it sways, WIDTH how far apart the sides go (0: mono) and MIX the level. On
-        headphones and line out the sound opens up; on the speaker, which is mono, the chorus remains.</p>
-      <p class="where"><b>FX</b>: <b>KNOB1</b> TIME, <b>KNOB2</b> FDBK, <b>KNOB3</b> COLR, <b>KNOB4</b> MIX. Again:
-        <b>KNOB1</b> SIZE, <b>KNOB2</b> DAMP, <b>KNOB3</b> DLY, <b>KNOB4</b> MIX. Again: <b>KNOB1</b> RATE,
-        <b>KNOB2</b> DEPTH, <b>KNOB3</b> WIDTH, <b>KNOB4</b> MIX.</p>
-    </li>
-    <li class="guide" id="m-presets">
-      <h3>Keep a sound</h3>
-      <p>Turn PRESETS to hear the factory ones: INIT, BASS, LEAD, PAD, PLUCK, WOBBLE, BELLS, BRASS, SUPER, STRINGS, SAWS, WAVES, GRAINS and CHIMES. Change whatever you like;
-        to keep it, press SAVE twice: the screen shows SAVED. To save as, on the SAVE page pick another slot with KNOB1
-        and change the name with KNOB2 (the position) and KNOB3 (the letter) before the second SAVE. Yours come back
-        when the FM&#8209;1 is switched on again, after the factory ones in the PRESETS list. In the simulator, they
-        stay in this browser.</p>
-      <p class="where"><b>PRESETS</b> to listen; <b>SAVE</b> <b>SAVE</b> saves; <b>SAVE</b>, <b>KNOB1</b> the slot,
-        <b>KNOB2</b> <b>KNOB3</b> the name, <b>SAVE</b>: save as.</p>
-    </li>
-    <li class="guide" id="m-shift">
-      <h3>Go deeper (SHIFT)</h3>
-      <p>Press HOME on any sound page and it turns into its + page (HOME again goes back), with four other knobs. OSC 1 +: PW / SHAPE
-        (SQR's width, the other waves' shape), NOISE and NCOL, the noise's colour (WHITE, PINK,
-        BROWN, VIOL, DIGI, CRACK). OSC 2 +: PW, SYNC
-        (OSC 2 restarts with OSC 1), KEY (follows the keyboard or stays fixed) and RING. AMP ENV +: KEYT (shorter high
-        notes) and LOOP. On the AMP page (EDIT): VOL, VEL, MODE (POLY, MONO, LEGATO, UNI) and VOICE (how many voices; in
-        UNI it becomes DETUN); SUB (an octave below) is on OSC 1. UNI stacks the four
-        voices on one note, detuned by DETUN and spread across the stereo field: the supersaw sound (the SUPER preset). FILTER +: TYPE (LP, BP, HP, NOTCH), DRIVE,
-        VEL and SLOPE (12 or 24 dB). FILTER ENV +: VEL, KEYT, LOOP and AVEL (how much velocity changes the level). LFO +: TRIG (free or restarts on the note), FADE and
-        PHASE. DELAY +: HP on the echoes. REVERB +: PRE (pre-delay) and TONE.</p>
-      <p class="where">Press <b>HOME</b> and turn <b>KNOB1</b> to <b>KNOB4</b>; <b>HOME</b> again to go back.</p>
-    </li>
-    <li class="guide" id="m-global">
-      <h3>Set up the device (GLO)</h3>
-      <p>GLO opens GLOBAL, what stays with the device and does not change with the presets: CH (OMNI or a MIDI
-        channel), TUNE (±50 cents, to tune with other instruments), VELC (the MIDI velocity curve: LIN, SOFT, HARD or
-        FIX) and LIGHT (DIM: buttons lit dimly; INV: lit, and the active one goes dark; ON: all lit; OFF: only the
-        active one). Saved on leaving the page. GLO again: GLOBAL 2, with COLOR, the palettes of the ObsSynth panels (OBS,
-        AMBER, FOREST, GREY, LILAC, OCEAN, OLIVA, SOLAR, WINE). With HOME there, INFO shows the firmware version.</p>
-      <p class="where"><b>GLO</b>: <b>KNOB1</b> CH, <b>KNOB2</b> TUNE, <b>KNOB3</b> VELC, <b>KNOB4</b> LIGHT.</p>
-    </li>
-    <li class="guide" id="m-update">
-      <h3>Update mode</h3>
-      <p>Hold OCT− and OCT+ together for 5 seconds: the screen shows UBOOT and the FM&#8209;1 enters the chip's boot
-        mode, through which a new firmware (or the original one) is written. If the firmware crashes twice in a row in
-        the first 30 seconds after power-on, it enters that mode by itself.</p>
-      <p class="where">Hold <b>OCT-</b> + <b>OCT+</b> for 5 s.</p>
-    </li>
-  </ol>
-</section>
-
-<section id="install" class="install" aria-labelledby="install-title">
-  <header class="install-head">
-    <h2 id="install-title">On your FM-1.</h2>
-    <p>The firmware playing up there is the same C code that goes to the FM&#8209;1. It already builds for the
-      device, in a package GitHub builds and signs from the source, and it has been tested on an FM&#8209;1. Install
-      it from The Firmware Hub, in the browser.</p>
-  </header>
-
-  <div class="cable-diagram" id="cable" aria-hidden="true">
-    <div class="laptop">
-      <div class="lid"><span class="bar"></span><span class="ghost-btn">Build</span><span class="ghost-line"></span></div>
-      <div class="deck"></div>
+  <section class="panel" id="sounds" aria-label="Sounds">
+    <header><h2>Sounds</h2><span class="tag">4 engines</span></header>
+    <div class="sounds">
+        <article class="sound">
+          <img src="img/sound-std.png" width="240" height="240" alt="F2 BASS" loading="lazy">
+          <h3>STD<span>F2 BASS</span></h3>
+          <p>Eight waves (SAW, SQR, TRI, SIN, RAMP, FOLD, FM, OCT), each shaped by PW, with SUB and NOISE.</p>
+          <button type="button" class="btn-ui" data-preset="1" data-clip="Eighth-note bass">Listen</button>
+        </article>
+        <article class="sound">
+          <img src="img/sound-super.png" width="240" height="240" alt="F9 SUPER" loading="lazy">
+          <h3>SUPER<span>F9 SUPER</span></h3>
+          <p>Seven detuned saws per oscillator; in UNI the four voices stack on one note. The acid sound.</p>
+          <button type="button" class="btn-ui" data-preset="8" data-clip="Acid 16">Listen</button>
+        </article>
+        <article class="sound">
+          <img src="img/sound-wt.png" width="240" height="240" alt="F12 WAVES" loading="lazy">
+          <h3>WT<span>F12 WAVES</span></h3>
+          <p>Four wavetable banks, alias-free; an LFO sweeps the position (POS).</p>
+          <button type="button" class="btn-ui" data-preset="11" data-clip="Long pad">Listen</button>
+        </article>
+        <article class="sound">
+          <img src="img/sound-grain.png" width="240" height="240" alt="F13 GRAINS" loading="lazy">
+          <h3>GRAIN<span>F13 GRAINS</span></h3>
+          <p>Grains of ORGAN, BELL or VOX, at the note's pitch: POS, SIZE, DENS, SPRAY.</p>
+          <button type="button" class="btn-ui" data-preset="12" data-clip="Chords Am F C G">Listen</button>
+        </article>
     </div>
-    <div class="usb"><span class="wire"></span><span class="pulse"></span><span class="pulse late"></span></div>
-    <div class="fm1-shot" id="install-mini"></div>
-  </div>
-  <ol class="install-steps">
-    <li><h3>Build</h3><p>With JieLi's toolchain: <code>./build.sh</code> builds the app and checks the image; on a tag, GitHub builds and signs the package.</p></li>
-    <li><h3>Tested on the device</h3><p>Installed from the stock firmware and from another one, and removed again.</p></li>
-    <li><h3>Install</h3><p>From <a href="https://thefirmwarehub.com" target="_blank" rel="noopener">The Firmware Hub</a>, in the browser.</p></li>
-  </ol>
+  </section>
 
-  <div class="install-grid">
-    <div class="whats-new">
-      <p class="fw-version" id="fw-version">ObsSynth FM-1</p>
-      <h3>What's new</h3>
-      <ul id="whats-new"></ul>
+  <section class="panel" id="manual" aria-label="Manual">
+    <header><h2>Manual</h2><span class="tag">Every control, every page</span></header>
+    <p>Everything works in the simulator above as on the FM-1. The screen shows one page at a time; the four knobs edit its four values. The buttons not listed have no function yet.</p>
+    <div class="manual-grid">
+      <section class="sub wide">
+        <header><h3>The FM-1 panel</h3></header>
+        <div class="controls">
+          <div><h4>KNOBS</h4><ul><li><b>MASTER</b> The volume: the speaker and the headphones.</li><li><b>ALGORITHM</b> The engine of the page's oscillator: STD (eight waveforms), SUPER (seven detuned saws), WT (wavetable) or GRAIN (granular). On the OSC 2 page, OSC 2's; on the others, OSC 1's.</li><li><b>SELECT</b> Changes the page: OSC 1, OSC 2, AMP, AMP ENV, FILTER and FILTER ENV. On an LFO or FX page, it goes back to the page you were on.</li><li><b>PRESETS</b> The next or the previous preset: the factory ones (F1 to F14), then yours (U01 to U16). It loads at once; the name shows under the title, with a * after you turn a knob.</li><li><b>KNOB1</b> to <b>KNOB4</b> Edit the four values on screen, left to right. Turned fast, the step doubles.</li></ul></div>
+          <div><h4>BUTTONS</h4><ul><li><b>HOME</b> SHIFT, on and off: the + page of the module on screen (OSC 1 +, FILTER + …), with four more parameters on the knobs, stays until HOME again (or another page); its LED lit meanwhile.</li><li><b>SEL</b> Toggles OSC 1 and OSC 2.</li><li><b>EDIT</b> Toggles AMP (VOL, VEL, MODE, VOICE) and AMP ENV.</li><li><b>SEQ</b> Toggles FILTER and FILTER ENV.</li><li><b>ENV</b> Toggles AMP ENV and FILTER ENV: a shortcut between the two envelopes.</li><li><b>SAVE</b> Opens the SAVE page. SAVE again stores to the same slot, with the same name. To save as: KNOB1 picks another slot (U01 to U16; OVER warns it holds one already), KNOB2 the position and KNOB3 the letter of the name, then SAVE. SELECT or another page's button leave without saving.</li><li><b>GLO</b> GLOBAL, the settings of the device rather than the sound: MIDI channel, master tuning, velocity curve and button lights; GLO again, GLOBAL 2: the screen's palette. Saved on leaving. With HOME: INFO (version, build, presets, flash).</li><li><b>FX</b> DELAY, REVERB and CHORUS, in turn. Its LED stays lit on the effect pages.</li><li><b>LFO</b> Toggles LFO 1 and LFO 2. Its LED stays lit while an LFO is on screen.</li><li><b>OCT-</b> <b>OCT+</b> The keyboard an octave down or up, from −2 to +2; the LED on that side lights away from the centre. Both together for 5 s: update mode.</li></ul></div>
+          <div><h4>KEYS</h4><ul><li>The 16 white keys: the natural notes, F3 to G5 (with the octave at the centre).</li><li>The 11 black keys: the sharps. Up to four notes sound together; a fifth takes the oldest released voice.</li></ul></div>
+        </div>
+      </section>
+        <section class="sub">
+          <header><h3>Find your way</h3></header>
+          <p>The screen shows one page at a time: its name on top, with the octave, the voices sounding and the CPU, the four values below it, and the page's picture at the bottom. SELECT moves from page to page; the four knobs edit the four columns, in order.</p>
+          <p class="where"><b>SELECT</b> the pages, <b>KNOB1</b> to <b>KNOB4</b> the values, <b>HOME</b> the + page.</p>
+        </section>
+        <section class="sub">
+          <header><h3>Pick the wave</h3></header>
+          <p>OSC 1 is the source. WAVE picks SAW, the brightest, SQR, hollow, TRI, soft, or SIN, pure (and four more, below); SAW and SQR are band-limited, with no aliasing up high. TUNE transposes in semitones, ±24. GLIDE makes each new note slide from the last, from instant to almost a second. SUB adds an oscillator an octave below; the synth's level, VOL, is on the AMP page (EDIT).</p>
+          <p class="where"><b>SEL</b> (OSC 1): <b>KNOB1</b> WAVE, <b>KNOB2</b> TUNE, <b>KNOB3</b> GLIDE, <b>KNOB4</b> SUB.</p>
+        </section>
+        <section class="sub">
+          <header><h3>Change the engine</h3></header>
+          <p>Turn ALGORITHM on an oscillator page and it changes engine; the title shows which. STD is eight waves: SAW, SQR, TRI, SIN, RAMP (a falling saw), FOLD (a folded sine), FM (a sine modulated by its own octave) and OCT (a saw plus a saw an octave up); the OSC + page's PW becomes SHAPE and shapes each of them (SQR's width, TRI's symmetry, how far FOLD folds, FM's index, OCT's octave level). SUPER is seven saws, one in the centre and six detuned around it: the first knob becomes DETUN (how far they spread) and, with HOME, SIDE (the level of the outer ones). WT reads a wavetable: the first knob becomes POS, the position in the table, and with HOME, TABLE picks the bank (BASIC, S>SAW, HARM, MORPH). The screen shows the wave at that position and a ruler of the table with a marker, which moves by itself when an LFO moves POS. An LFO with DEST POS sweeps the table on its own (the WAVES preset).</p>
+          <p>GRAIN plays a sample (ORGAN, BELL or VOX, a voice moving through the vowels) in grains: short slices, each with its own window, at the note's pitch. The first knob is POS, where the grains come from; with HOME, SMPL the sample, SIZE each grain's length (10 to 500 ms), DENS how many per second and SPRAY how far each one strays around POS, at random. The screen shows the sample and, while a note sounds, the live grains: each window's arc below and, on the sample, a bar where it is reading, as wide as the window is open. An LFO on POS wanders through the sample (the GRAINS and CHIMES presets).</p>
+          <p class="where"><b>ALGORITHM</b> the engine; <b>KNOB1</b> WAVE / DETUN / POS / POS; <b>HOME</b>: <b>KNOB1</b> PW / SIDE / TABLE, and on GRAIN all four: SMPL SIZE DENS SPRAY.</p>
+        </section>
+        <section class="sub">
+          <header><h3>Add the second oscillator</h3></header>
+          <p>OSC 2 is a second oscillator in each voice, mixed with the first before the filter. SEMI moves it in semitones (±24: a fifth, an octave), FINE detunes it slightly, up to about 32 cents, for the "fat" sound of two oscillators. MIX sets how much of it you hear: at 0 only OSC 1, at 127 only OSC 2.</p>
+          <p class="where"><b>SEL</b> twice (OSC 2): <b>KNOB1</b> WAVE, <b>KNOB2</b> SEMI, <b>KNOB3</b> FINE, <b>KNOB4</b> MIX.</p>
+        </section>
+        <section class="sub">
+          <header><h3>Shape the volume</h3></header>
+          <p>AMP ENV is each note's volume envelope. ATK is the rise, from 1 ms to about 4 s; DEC the fall to SUS, the level held while the key is down; REL the fall after you let go. With SUS at 0 the note sounds like a percussion and ends by itself.</p>
+          <p class="where"><b>ENV</b> (or <b>SELECT</b> to AMP ENV): <b>KNOB1</b> ATK, <b>KNOB2</b> DEC, <b>KNOB3</b> SUS, <b>KNOB4</b> REL.</p>
+        </section>
+        <section class="sub">
+          <header><h3>Close the filter</h3></header>
+          <p>FILTER is a 12 dB low-pass (24 dB with FILTER +'s SLOPE), from 50 Hz to 18 kHz. CUT is the cutoff; RESO the resonance, which lifts the cutoff until it almost sings. ENV sets how far the filter envelope opens (or, negative, closes) the cutoff on each note. KEY makes the cutoff follow the note: at 100% it rises an octave for each octave played, so high notes are not muffled.</p>
+          <p class="where"><b>SEQ</b> (FILTER): <b>KNOB1</b> CUT, <b>KNOB2</b> RESO, <b>KNOB3</b> ENV, <b>KNOB4</b> KEY.</p>
+        </section>
+        <section class="sub">
+          <header><h3>Move the filter</h3></header>
+          <p>FILTER ENV is a second ADSR, for the filter only. With CUT low, ENV high and a short DEC, each note starts open and closes at once: a bass "pluck". With a long ATK, the sound opens slowly, like a pad.</p>
+          <p class="where"><b>ENV</b> twice (or <b>SELECT</b> to FILTER ENV): <b>KNOB1</b> ATK, <b>KNOB2</b> DEC, <b>KNOB3</b> SUS, <b>KNOB4</b> REL.</p>
+        </section>
+        <section class="sub">
+          <header><h3>Add movement</h3></header>
+          <p>Two LFOs, each with one destination. WAVE picks SIN, TRI, SAW, SQR or S&amp;H (a random level each cycle); RATE goes from 0.05 to 40 Hz; DEST picks what it moves: PITCH (vibrato, up to ±12 semitones), CUT (the filter opening and closing), RESO, AMP (tremolo), MIX (between the two oscillators), POS (WT and GRAIN), or a single oscillator: PIT1 / PIT2 (one's pitch), SHP1 / SHP2 (its SHAPE, the PW), POS1 / POS2, DET1 / DET2 (SUPER's DETUN), and NOISE. DEPTH is how much, one way or the other. Both LFOs can move the same destination: their effects add up. The screen shows the wave as tall as DEPTH, the destination spelled out and a dot where it is now.</p>
+          <p class="where"><b>LFO</b> (again: LFO 2): <b>KNOB1</b> WAVE, <b>KNOB2</b> RATE, <b>KNOB3</b> DEST, <b>KNOB4</b> DEPTH.</p>
+        </section>
+        <section class="sub">
+          <header><h3>Give it space</h3></header>
+          <p>After the voices, a delay and a reverb, Hortator's. DELAY repeats the sound: TIME goes from 10 ms to 1.5 s, FDBK sets how many repeats, COLR darkens each one (0 dark, 127 open) and MIX is the echoes' level. REVERB is a room: SIZE its size, DAMP how fast the highs die, DLY sends the delay's echoes into the room and MIX is its level. With both MIX at 0 the sound comes out dry.</p>
+          <p>CHORUS, the third page, is stereo: two reads of a short line, swayed by a slow LFO, one for each side. RATE is the speed, DEPTH how far it sways, WIDTH how far apart the sides go (0: mono) and MIX the level. On headphones and line out the sound opens up; on the speaker, which is mono, the chorus remains.</p>
+          <p class="where"><b>FX</b>: <b>KNOB1</b> TIME, <b>KNOB2</b> FDBK, <b>KNOB3</b> COLR, <b>KNOB4</b> MIX. Again: <b>KNOB1</b> SIZE, <b>KNOB2</b> DAMP, <b>KNOB3</b> DLY, <b>KNOB4</b> MIX. Again: <b>KNOB1</b> RATE, <b>KNOB2</b> DEPTH, <b>KNOB3</b> WIDTH, <b>KNOB4</b> MIX.</p>
+        </section>
+        <section class="sub">
+          <header><h3>Keep a sound</h3></header>
+          <p>Turn PRESETS to hear the factory ones: INIT, BASS, LEAD, PAD, PLUCK, WOBBLE, BELLS, BRASS, SUPER, STRINGS, SAWS, WAVES, GRAINS and CHIMES. Change whatever you like; to keep it, press SAVE twice: the screen shows SAVED. To save as, on the SAVE page pick another slot with KNOB1 and change the name with KNOB2 (the position) and KNOB3 (the letter) before the second SAVE. Yours come back when the FM&#8209;1 is switched on again, after the factory ones in the PRESETS list. In the simulator, they stay in this browser.</p>
+          <p class="where"><b>PRESETS</b> to listen; <b>SAVE</b> <b>SAVE</b> saves; <b>SAVE</b>, <b>KNOB1</b> the slot, <b>KNOB2</b> <b>KNOB3</b> the name, <b>SAVE</b>: save as.</p>
+        </section>
+        <section class="sub">
+          <header><h3>Go deeper (SHIFT)</h3></header>
+          <p>Press HOME on any sound page and it turns into its + page (HOME again goes back), with four other knobs. OSC 1 +: PW / SHAPE (SQR's width, the other waves' shape), NOISE and NCOL, the noise's colour (WHITE, PINK, BROWN, VIOL, DIGI, CRACK). OSC 2 +: PW, SYNC (OSC 2 restarts with OSC 1), KEY (follows the keyboard or stays fixed) and RING. AMP ENV +: KEYT (shorter high notes) and LOOP. On the AMP page (EDIT): VOL, VEL, MODE (POLY, MONO, LEGATO, UNI) and VOICE (how many voices; in UNI it becomes DETUN); SUB (an octave below) is on OSC 1. UNI stacks the four voices on one note, detuned by DETUN and spread across the stereo field: the supersaw sound (the SUPER preset). FILTER +: TYPE (LP, BP, HP, NOTCH), DRIVE, VEL and SLOPE (12 or 24 dB). FILTER ENV +: VEL, KEYT, LOOP and AVEL (how much velocity changes the level). LFO +: TRIG (free or restarts on the note), FADE and PHASE. DELAY +: HP on the echoes. REVERB +: PRE (pre-delay) and TONE.</p>
+          <p class="where">Press <b>HOME</b> and turn <b>KNOB1</b> to <b>KNOB4</b>; <b>HOME</b> again to go back.</p>
+        </section>
+        <section class="sub">
+          <header><h3>Set up the device (GLO)</h3></header>
+          <p>GLO opens GLOBAL, what stays with the device and does not change with the presets: CH (OMNI or a MIDI channel), TUNE (±50 cents, to tune with other instruments), VELC (the MIDI velocity curve: LIN, SOFT, HARD or FIX) and LIGHT (DIM: buttons lit dimly; INV: lit, and the active one goes dark; ON: all lit; OFF: only the active one). Saved on leaving the page. GLO again: GLOBAL 2, with COLOR, the palettes of the ObsSynth panels (OBS, AMBER, FOREST, GREY, LILAC, OCEAN, OLIVA, SOLAR, WINE). With HOME there, INFO shows the firmware version.</p>
+          <p class="where"><b>GLO</b>: <b>KNOB1</b> CH, <b>KNOB2</b> TUNE, <b>KNOB3</b> VELC, <b>KNOB4</b> LIGHT.</p>
+        </section>
+        <section class="sub">
+          <header><h3>Update mode</h3></header>
+          <p>Hold OCT− and OCT+ together for 5 seconds: the screen shows UBOOT and the FM&#8209;1 enters the chip's boot mode, through which a new firmware (or the original one) is written. If the firmware crashes twice in a row in the first 30 seconds after power-on, it enters that mode by itself.</p>
+          <p class="where">Hold <b>OCT-</b> + <b>OCT+</b> for 5 s.</p>
+        </section>
+      <section class="sub wide">
+        <header><h3>Mouse and keyboard</h3></header>
+        <div class="controls">
+          <div><h4>MOUSE AND TOUCH</h4><ul><li>Keys and buttons play while pressed, several at once.</li><li>Knobs: drag up or down, use the mouse wheel, or hover and use ↑ ↓.</li><li>To hold a button (OCT− + OCT+), right-click it or press and hold; tap again to release.</li></ul></div>
+          <div><h4>GETTING AROUND</h4><ul><li>By section: SEL toggles OSC 1 and OSC 2; EDIT, AMP and AMP ENV; SEQ, FILTER and FILTER ENV. SELECT steps through all of them in order: OSC 1, OSC 2, AMP, AMP ENV, FILTER, FILTER ENV.</li><li>ENV: AMP ENV and FILTER ENV; LFO: LFO 1 and LFO 2; FX: DELAY, REVERB and CHORUS; GLO: GLOBAL and GLOBAL 2. Each button cycles through its own pages.</li><li>KNOB1 to KNOB4 edit the four values; HOME turns SHIFT on and off: the module's + page, with four more parameters, stays on screen until HOME again or another page.</li><li>PRESETS changes the preset; SAVE, then SAVE again, stores the sound in a slot.</li></ul></div>
+          <div><h4>COMPUTER KEYBOARD</h4><ul><li>Lower keys: Z X C V B N M , . / and S D F H J L ; '</li><li>Upper keys: Q W E R T Y and 3 4 6.</li><li>Esc HOME, ← OCT−, → OCT+.</li></ul></div>
+        </div>
+      </section>
     </div>
-    <div class="install-go">
-      <a class="cta big" href="https://github.com/orianbsilva/obssynth-fm1" target="_blank" rel="noopener">See the code</a>
-      <p class="risk">Install at your own risk, with no warranty; the author is not liable for
-        damage to your FM&#8209;1.</p>
+  </section>
+
+  <div class="two-col" id="install">
+    <section class="panel" aria-label="Install">
+      <header><h2>Install</h2><span class="tag">The Firmware Hub</span></header>
+      <ol class="steps"><li><b>Open</b> <a href="https://thefirmwarehub.com" target="_blank" rel="noopener">The Firmware Hub</a> in Chrome or Edge and find ObsSynth FM-1.</li><li><b>Connect</b> the FM-1 straight to the computer with a USB data cable, charged.</li><li><b>Install</b>: it works from the stock firmware (V15) and from other custom firmwares; an interrupted install resumes.</li></ol>
+      <p>The package, <code>obssynth-fm1-VERSION.fwsc</code> (identity FM-1_917), is built and signed by GitHub from the tagged source: <a href="https://github.com/orianbsilva/obssynth-fm1/releases" target="_blank" rel="noopener">releases</a>.</p>
+      <p class="risk">Install at your own risk, with no warranty; the author is not liable for damage to your FM&#8209;1.</p>
       <details>
         <summary>Back to the original firmware</summary>
         <p>M-VAVE's updater, M-UPGRADE, puts the original firmware back: at
-          <a href="https://www.m-vave.com/download" target="_blank" rel="noopener">m-vave.com/download</a>, Downloads →
-          PC Software → M-UPGRADE, with PC Firmware → FM-1 V15.</p>
-      </details>
+        <a href="https://www.m-vave.com/download" target="_blank" rel="noopener">m-vave.com/download</a>, Downloads →
+        PC Software → M-UPGRADE, with PC Firmware → FM-1 V15.</p>
+        </details>
       <details>
         <summary>If the FM-1 no longer starts</summary>
         <p>The chip's boot mode cannot be erased: hold OCT− and OCT+ for 5 s, or let the firmware crash twice, and write
-          the original with the recovery tool (<code>docs/RECOVERY.md</code>) or a
-          <a href="https://github.com/kurogedelic/FM-1-transporter" target="_blank" rel="noopener">Transporter</a>.</p>
-      </details>
-    </div>
+        the original with the recovery tool (<code>docs/RECOVERY.md</code>) or a
+        <a href="https://github.com/kurogedelic/FM-1-transporter" target="_blank" rel="noopener">Transporter</a>.</p>
+        </details>
+    </section>
+    <section class="panel" aria-label="What's new">
+      <header><h2>What's new</h2><span class="tag fw-version" id="fw-version">ObsSynth FM-1</span></header>
+      <ul class="whats-new" id="whats-new"></ul>
+    </section>
   </div>
-</section>
-
-<div class="foot-band" id="foot-band" aria-hidden="true"></div>
+</main>
 <footer class="foot">
-  <div class="foot-brand">
-    <p class="silk foot-mark">OBSSYNTH <span class="mark">FM-1</span></p>
-    <p>The ObsSynth engine, in fixed point, on the FM&#8209;1.</p>
-  </div>
-  <nav class="foot-nav" aria-label="On this page">
-    <a href="#play">Play in the browser</a>
-    <a href="#manual">How to play</a>
-    <a href="#install">On your FM-1</a>
-    <a href="https://github.com/orianbsilva/obssynth-fm1" target="_blank" rel="noopener">Source code (GPL-3.0)</a>
-  </nav>
-  <div class="foot-credits">
-    <p>By Orian Beltrame (Carbonian), built on DEADACTIVE's Hortator and Leo Kuroshita's (@kurogedelic) Felucca,
-      <a href="https://hugelton.com" target="_blank" rel="noopener">Hügelton Instruments</a>. GPL-3.0, no warranty.
-      What the simulator saves stays in this browser.</p>
-    <p>Fonts: Inter (Rasmus Andersson) and JetBrains Mono (JetBrains), SIL OFL 1.1. Screen pixel font:
-      DEADACTIVE. Recovery: jl-uboot-tool (Andrey Grigoryev).</p>
+  <div>
+    <p>By Orian Beltrame (Carbonian), built on DEADACTIVE's Hortator and Leo Kuroshita's (@kurogedelic) Felucca, <a href="https://hugelton.com" target="_blank" rel="noopener">Hügelton Instruments</a>. GPL-3.0, no warranty. What the simulator saves stays in this browser.</p>
+    <p>Fonts: Inter (Rasmus Andersson) and JetBrains Mono (JetBrains), SIL OFL 1.1. Screen pixel font: DEADACTIVE. Recovery: jl-uboot-tool (Andrey Grigoryev).</p>
     <p>M-VAVE and FM-1 are trademarks of their owners; ObsSynth FM-1 is not affiliated with M-VAVE.</p>
   </div>
+  <div class="looks" id="looks"><span>LOOK</span></div>
 </footer>
 <script type="module" src="app.js"></script>
 </body>

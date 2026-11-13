@@ -11,7 +11,7 @@ por estado que a página controla.
 | Núcleo | `tests/sim_core.c` | a API exportada (`sim_init`, `sim_render`, `sim_key`, `sim_btn`, `sim_enc`, `sim_master`, `sim_fb`, `sim_leds`, `sim_key_leds`, `sim_audio`, `sim_playing`). `sim_render` é o relógio: roda o ISR a cada meio buffer (256 amostras) e o frame do loop principal a cada 15 ms de áudio, como no aparelho |
 | Motor JS | `web/sim/engine.js` | carrega o `.wasm` e embrulha a API |
 | Worklet | `web/sim/worklet.js` | roda o firmware na thread de áudio (128 frames por quantum), recebe os controles como mensagens e devolve a tela e os LEDs a cada frame de UI |
-| Página | `web/sim/` (`index.html`, `app.js`, `layout.js`, `sim.css`, …) | o layout do Hortator (o FM-1 em 3D, a flash no IndexedDB, o manual com o mapa do painel) nas cores e fontes do ObsSynth (as do repositório synth: `src/app/common/panel_kit.hpp`, `panel_fonts.hpp`), em inglês (`index.html`) e português (`pt.html`); os textos dos scripts escolhem a língua pelo `lang` da página (`i18n.js`). As features do Hortator (`features.js`, `lab*.js`) saíram |
+| Página | `web/sim/` (`index.html` em inglês, `pt.html` em português, `app.js`, `layout.js`, `clips.js`, `page.css`, `device.css`, …) | a página do ObsSynth FM-1, na linguagem dos painéis do ObsSynth (as paletas e as fontes de `src/app/common/panel_kit.hpp` do repositório synth): a barra de cima com o display do preset e o LIGAR, os clips ao lado do FM-1, os sons (uma demo por motor), o manual e a instalação. O desenho do painel do FM-1 e a cola do simulador vêm do Hortator; o resto da página é próprio. Os textos dos scripts escolhem a língua pelo `lang` da página (`i18n.js`) |
 | Controles | `web/sim/controls.js` | ids dos botões e knobs na ordem dos enums de `panel.c` (`tests/sim_glue.mjs` confere), mapa do teclado do computador |
 
 ## Build
@@ -31,6 +31,6 @@ Os da página: teclas e botões tocam enquanto pressionados; knobs com arraste, 
 
 - A CPU na tela marca 0 % no simulador: o relógio ali é o das amostras, não o do processador.
 - Sem armazenamento: o núcleo exporta a flash (`sim_flash*`) que a página guarda, mas o firmware ainda não escreve nela.
-- `reel.bin.gz` (a tela animada antes de ligar) ainda não é gerado: a tela fica escura até ligar.
+- As imagens dos sons (`web/sim/img/sound-*.png`) são telas do próprio simulador, geradas com o preset carregado e uma nota segurada.
 - As fontes da página (Inter e JetBrains Mono, as dos painéis do ObsSynth) vêm do Google Fonts; sem rede, o navegador
   usa as alternativas (DejaVu, Segoe UI, monospace).

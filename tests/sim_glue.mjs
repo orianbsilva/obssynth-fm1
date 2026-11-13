@@ -58,5 +58,6 @@ check('sim_preset: F9 (SUPER, the acid clips\' sound) loads', sim.preset(8) === 
 run(2205);
 check('.. its name on the screen', sim.fb().some((c, i) => c !== shown[i]));
 check('.. an entry past the list loads nothing', sim.preset(999) === 8);
+check('sim_preset_name: "F9 SUPER"', sim.presetName() === 'F9 SUPER');
 console.log(fails ? `sim_glue: ${fails} FAILED` : 'sim_glue: all ok');
 process.exit(fails ? 1 : 0);

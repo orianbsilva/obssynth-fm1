@@ -41,7 +41,7 @@ class Fm1Processor extends AudioWorkletProcessor {
     if (uiFrames) {
       const fb = this.sim.fb();
       this.port.postMessage({ t: 'frame', fb, leds: this.sim.leds(), keyLeds: this.sim.keyLeds(), glow: this.sim.glow(),
-        keyGlow: this.sim.keyGlow() }, [fb.buffer]);
+        keyGlow: this.sim.keyGlow(), pre: this.sim.presetName() }, [fb.buffer]);
       const dirty = this.sim.takeDirty();
       if (dirty.length) this.port.postMessage({ t: 'flash', sectors: dirty }, dirty.map(d => d.bytes.buffer));
     }
