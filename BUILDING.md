@@ -9,9 +9,9 @@ The build makes, in `build/`:
 | `obssynth-fm1-VERSION.fwsc` | the release package, with `--release VERSION` (VERSION.txt's; what the `v*` tag workflow runs) |
 | `synth-UNTESTED.fwsc` | a package for trying a working tree, with `SYNTH_PACKAGE=1` |
 
-**Not tested on hardware yet.** The device build runs and passes its image checks (JieLi toolchain 20260730.1, AC79
-SDK V1.2.1), but the firmware has never booted on an FM-1; the C also compiles for a host target and the simulator
-runs it (`tests/run_tests.sh`). The app carries Felucca's USB driver and
+**Tested on an FM-1** (0.1.0: installed from V15 and from another firmware, and removed). The device build passes
+its image checks (JieLi toolchain 20260730.1, AC79 SDK V1.2.1); the C also compiles for a host target and the
+simulator runs it (`tests/run_tests.sh`). The app carries Felucca's USB driver and
 M-UPGRADE update entry (`usb.c`, `ota.c`, the loader's own), so an installed build stays updatable over USB-MIDI
 (`tools/fm1_install.py`, M-VAVE's updater). If it ever does not start, the way back is UBOOT (OCT- + OCT+ held 5 s,
 or the boot-loop guard after two crashes in the first 30 s) and [docs/RECOVERY.md](docs/RECOVERY.md).

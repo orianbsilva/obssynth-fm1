@@ -11,9 +11,8 @@ WebAssembly. Its base comes from [Hortator](https://github.com/deadactive/hortat
 knob scan, the LCD, the I2S audio out, the update loader and the simulator. The drum machine is gone; the voice and
 the screen are new, after the ObsSynth desktop instruments.
 
-> **Status: not tested on an FM-1 yet.** The firmware builds for the device (`./build.sh` passes every image check)
-> and runs in the simulator, but it has never booted on real hardware. Do not install it until a release says it
-> was tested; the [way back](#leaving-this-firmware) is described below.
+> **Status: 0.1.0, tested on an FM-1:** installed from the stock firmware (V15) and from another custom firmware,
+> and removed again. Install at your own risk, with no warranty; the [way back](#leaving-this-firmware) is below.
 
 ## What it does
 
@@ -46,8 +45,7 @@ The [manual](https://orianbsilva.github.io/obssynth-fm1/#manual) walks through e
 
 The release package is `obssynth-fm1-VERSION.fwsc`, identity **FM-1_917**, built and signed by GitHub from the
 tagged source with [fm1-build](https://github.com/zvenson/fm1-build) (see [Verify a package](#verify-a-package)).
-Once a release has been tested on an FM-1 it will be offered on [The Firmware Hub](https://thefirmwarehub.com),
-which installs it from the browser.
+It is (or soon will be) on [The Firmware Hub](https://thefirmwarehub.com), which installs it from the browser.
 
 - **From the stock firmware (V15)** or **from another custom firmware** (Felucca, Hortator and the others built on
   Felucca's update entry): the installer talks to the running firmware's update entry, which stages the package's

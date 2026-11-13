@@ -11,9 +11,9 @@ WebAssembly. A base veio do [Hortator](https://github.com/deadactive/hortator) (
 knobs, LCD, saída de áudio I2S, loader de atualização e o simulador. A bateria saiu; a voz e a tela são novas, a
 partir dos instrumentos ObsSynth do desktop.
 
-> **Estado: ainda não testado num FM-1.** O firmware compila para o aparelho (`./build.sh` passa em todas as
-> conferências da imagem) e roda no simulador, mas nunca ligou num aparelho de verdade. Não instale até uma release
-> dizer que foi testada; o [caminho de volta](#saindo-deste-firmware) está descrito abaixo.
+> **Estado: 0.1.0, testado num FM-1:** instalado a partir do firmware original (V15) e de outro firmware
+> customizado, e removido de novo. Instalação por sua conta e risco, sem garantia; o
+> [caminho de volta](#saindo-deste-firmware) está abaixo.
 
 ## O que faz
 
@@ -45,8 +45,7 @@ O [manual](https://orianbsilva.github.io/obssynth-fm1/pt.html#manual) passa por 
 
 O pacote da release é `obssynth-fm1-VERSÃO.fwsc`, identidade **FM-1_917**, gerado e assinado pelo GitHub a partir do
 código da tag, com o [fm1-build](https://github.com/zvenson/fm1-build) (ver [Conferir um pacote](#conferir-um-pacote)).
-Quando uma release for testada num FM-1, ela vai estar no [The Firmware Hub](https://thefirmwarehub.com), que
-instala pelo navegador.
+Ele está (ou logo estará) no [The Firmware Hub](https://thefirmwarehub.com), que instala pelo navegador.
 
 - **Do firmware original (V15)** ou **de outro firmware customizado** (Felucca, Hortator e os outros feitos sobre a
   entrada de atualização do Felucca): o instalador fala com a entrada de atualização do firmware que está rodando,
