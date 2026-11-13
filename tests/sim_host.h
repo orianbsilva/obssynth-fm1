@@ -15,7 +15,11 @@
 #undef memset
 #undef memcpy
 #undef memcmp
+/* the system header with its attributes: without them, a fortified <string.h> (_FORTIFY_SOURCE, on by default in
+ * Ubuntu's gcc) turns its inline memset wrapper into a real memset that calls itself (an endless loop at -O2) */
+#undef __attribute__
 #include <string.h>
+#define __attribute__(x)
 
 /* ---- clock: TIMER4 (24 MHz) from the audio sample count; time stops when the audio does */
 #define FM1_TICKS_PER_US 24u
