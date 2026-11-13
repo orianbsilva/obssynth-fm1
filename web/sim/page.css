@@ -19,7 +19,8 @@ button, select, input { font: inherit; }
 
 /* ---- the top bar: the wordmark, where to go, the preset display, the power switch */
 .topbar {
-  position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 24px; padding: 10px 24px;
+  position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 24px;
+  padding: 10px max(24px, calc((100% - 1480px) / 2 + 16px));   /* its contents over the panels' width */
   background: linear-gradient(180deg, var(--surface-2), var(--bg)); border-bottom: 1px solid var(--line);
 }
 .wordmark { font: 300 22px/1 var(--sans); letter-spacing: 6px; color: var(--ink); text-decoration: none; white-space: nowrap; }
@@ -37,6 +38,7 @@ button, select, input { font: inherit; }
 .display .what { flex: 1; text-align: center; line-height: 1.15; }
 .display .what small { display: block; font: 10px/1.2 var(--mono); letter-spacing: 2px; color: var(--muted); }
 .display .what span { font: 500 15px/1.3 var(--mono); color: var(--accent); }
+.display .what span.off { color: var(--muted); font-size: 12px; letter-spacing: 1px; }
 .power { display: flex; align-items: center; gap: 10px; font: 600 11px/1 var(--sans); letter-spacing: 2px; color: var(--muted); }
 .power-toggle {
   position: relative; width: 44px; height: 24px; padding: 0; border-radius: 999px; cursor: pointer;
@@ -46,8 +48,8 @@ button, select, input { font: inherit; }
   background: var(--muted); transition: transform .2s, background .2s; }
 .power-toggle.on { background: var(--accent); border-color: var(--accent); }
 .power-toggle.on .knob { transform: translateX(20px); background: var(--bg); }
-.power-toggle.ready { box-shadow: 0 0 0 0 var(--accent); animation: ping 2.4s ease-out infinite; }
-@keyframes ping { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent); } 70%, 100% { box-shadow: 0 0 0 10px transparent; } }
+.power-toggle.ready { border-color: var(--accent); }
+.power-toggle.ready .knob { background: var(--accent); }
 .power-toggle:disabled { cursor: progress; opacity: .6; }
 .lang { display: flex; gap: 12px; font: 600 12px/1 var(--sans); letter-spacing: 2px; }
 .lang a { color: var(--muted); text-decoration: none; }
@@ -78,10 +80,11 @@ main { max-width: 1480px; margin: 0 auto; padding: 16px 16px 0; display: grid; g
 .btn-ui.on, .btn-ui[aria-pressed="true"], .btn-ui[aria-expanded="true"] { background: var(--accent); border-color: var(--accent); color: var(--bg); }
 
 /* ---- the first row: the clips, the FM-1 */
-.intro { margin: 2px 4px 0; color: var(--muted); }
+.intro { margin: 2px 4px 0; color: var(--muted); font-size: 14px; }
 .intro b { color: var(--ink); font-weight: 600; }
-.play-row { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 14px; align-items: start; }
-.clips { display: grid; gap: 10px; }
+.play-row { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 14px; align-items: stretch; }
+.clips { display: flex; flex-direction: column; gap: 10px; }
+.clips #clip-sel { flex: 0 0 auto; }
 .clips .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .clips label { display: flex; gap: 8px; align-items: center; font: 600 11px/1.4 var(--sans); letter-spacing: 2px;
   text-transform: uppercase; color: var(--muted); }
@@ -90,7 +93,9 @@ main { max-width: 1480px; margin: 0 auto; padding: 16px 16px 0; display: grid; g
 .clips #clip-sel option { padding: 3px 6px; }
 .clips #clip-sel option:checked { background: var(--accent); color: var(--bg); }
 .clips input[type="checkbox"] { accent-color: var(--accent); }
-.clips-status { margin: 0; min-height: 3em; font: 12px/1.5 var(--mono); color: var(--muted); }
+.clips-status { margin: auto 0 0; font: 12px/1.5 var(--mono); color: var(--muted); }
+.clips .small { font-size: 13px; line-height: 1.45; margin: 0; }
+.clips #clip-dest { max-width: 190px; }
 .instrument .stage { position: relative; display: flex; justify-content: center; padding: 8px 0 4px; }
 .instrument .status { margin: 0; min-height: 1.5em; color: var(--muted); font: 13px/1.5 var(--mono); }
 .instrument .tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; margin-top: 8px; }
@@ -152,17 +157,24 @@ code { font: 13px var(--mono); color: var(--ink); }
   .sounds { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .manual-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
-@media (max-width: 860px) {
-  .topbar { flex-wrap: wrap; gap: 10px 16px; padding: 10px 14px; }
-  .tabs { order: 3; width: 100%; justify-content: space-between; }
-  .display { margin-left: 0; order: 4; width: 100%; min-width: 0; }
+@media (max-width: 860px) {                      /* one short bar that scrolls away; the tabs under it */
+  .topbar { position: static; flex-wrap: wrap; gap: 8px 12px; padding: 10px 12px; }
+  .wordmark { font-size: 17px; letter-spacing: 4px; }
+  .wordmark b { letter-spacing: 3px; }
+  .lang { margin-left: auto; font-size: 11px; gap: 10px; letter-spacing: 1px; }
+  .power { font-size: 0; gap: 0; }                 /* the switch alone: the bar's first row stays one row */
+  .tabs { order: 3; width: 100%; justify-content: space-between; gap: 8px; }
+  .tabs a { font-size: 11px; letter-spacing: 2px; }
+  .display { order: 4; margin-left: 0; width: 100%; min-width: 0; }
   .manual-grid, .two-col, .controls { grid-template-columns: minmax(0, 1fr); }
   .foot { grid-template-columns: minmax(0, 1fr); }
   .looks { justify-content: flex-start; }
+  .sound { grid-template-columns: 112px minmax(0, 1fr); column-gap: 12px; align-items: start; }
+  .sound img { grid-row: 1 / span 3; width: 112px; height: 112px; }
+  .clips #clip-sel { min-height: 0; }
 }
 @media (max-width: 520px) {
   .sounds { grid-template-columns: minmax(0, 1fr); }
   main { padding: 10px 8px 0; }
   .panel { padding: 10px 10px 12px; }
 }
-@media (prefers-reduced-motion: reduce) { .power-toggle.ready { animation: none; } }

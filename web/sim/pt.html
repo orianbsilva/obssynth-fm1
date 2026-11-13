@@ -33,19 +33,15 @@
   <div class="play-row" id="play">
     <section class="panel clips" id="clips" aria-label="Clips">
       <header><h2>Clips</h2><span class="tag">MIDI · loop</span></header>
-      <p class="clips-sub">No simulador, ou num FM-1 pelo USB. Os acid tocam no F9 SUPER.</p>
+      <p class="clips-sub small">No simulador, ou num FM-1 pelo USB. Os acid tocam no F9 SUPER.</p>
       <div class="row">
         <button type="button" class="btn-ui" id="clip-play">Tocar</button>
         <button type="button" class="btn-ui" id="clip-stop">Parar</button>
         <label><input type="checkbox" id="clip-loop" checked> Loop</label>
       </div>
-      <label for="clip-sel">Clip</label>
-      <select id="clip-sel" size="10"></select>
-      <div class="row">
-        <label>Para <select id="clip-dest"></select></label>
-        <label>Canal <select id="clip-ch"></select></label>
-      </div>
-      <div class="row"><button type="button" class="btn-ui" id="clip-midi" title="Pede ao navegador acesso às portas MIDI">Portas MIDI</button></div>
+      <select id="clip-sel" size="8" aria-label="Clip"></select>
+      <div class="row"><label>Para <select id="clip-dest"></select></label></div>
+      <div class="row"><label>Canal <select id="clip-ch"></select></label><button type="button" class="btn-ui" id="clip-midi" title="Pede ao navegador acesso às portas MIDI">Portas MIDI</button></div>
       <p id="clip-status" class="clips-status" role="status">Escolha um e toque Tocar (ou clique duas vezes nele).</p>
     </section>
     <section class="panel instrument" aria-label="FM-1">

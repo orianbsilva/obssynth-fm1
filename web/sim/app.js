@@ -109,8 +109,11 @@ function relayout() {
     device.style.width = `${G.W}px`;
     device.style.height = `${G.H}px`;
   }
-  const top = document.querySelector('.topbar')?.offsetHeight ?? 60;
-  const availH = Math.max(260, window.innerHeight - top - 210);   // the intro, the panel header and its tools row
+  // the height the first screen leaves it: from its top (in the page, unscrolled) to the window's bottom, less the
+  // tools row under it and the panel's padding
+  const tools = stage.nextElementSibling?.offsetHeight ?? 40;
+  const topInPage = stage.getBoundingClientRect().top + window.scrollY;
+  const availH = Math.max(260, window.innerHeight - topInPage - tools - 34);
   const scale = Math.max(0.25, Math.min(w / G.W, nowPortrait ? 2 : availH / G.H, 1.1));
   device.style.setProperty('--scale', scale);
   fit.style.width = `${G.W * scale}px`;
@@ -269,7 +272,10 @@ function paint() {
       els.ctl[`key:${n}`].classList.toggle('lit', ((keyLeds >>> n) & 1) === 1);
       els.ctl[`key:${n}`].classList.toggle('glow', ((keyGlow >>> n) & 1) === 1);
     }
-    if (pre !== undefined && preName.textContent !== (pre || '—')) preName.textContent = pre || '—';
+    if (pre !== undefined && preName.textContent !== (pre || '—')) {
+      preName.textContent = pre || '—';
+      preName.classList.remove('off');
+    }
   }
   requestAnimationFrame(paint);
 }
@@ -294,6 +300,10 @@ const wasmBytes = fetch('fm1sim.wasm').then(r => {
 });
 const instTag = document.getElementById('inst-tag');
 function setSwitch(on) {
+  if (!on || !node) {                             // the display says what to do while there is no firmware to show
+    preName.textContent = node ? tr('OFF', 'DESLIGADO') : tr('switch it on', 'ligue');
+    preName.classList.add('off');
+  }
   els.power.setAttribute('aria-checked', String(on));
   els.power.classList.toggle('on', on);
   instTag.classList.toggle('on', on);
@@ -424,6 +434,8 @@ function bindPage() {
   els.power.addEventListener('click', powerSwitch);
   els.power.disabled = false;
   els.power.classList.add('ready');
+  preName.textContent = tr('switch it on', 'ligue');
+  preName.classList.add('off');
   powerNote.textContent = tr('Switch it on (POWER, top right), or play a clip.', 'Ligue (LIGAR, no alto à direita), ou toque um clip.');
 }
 
