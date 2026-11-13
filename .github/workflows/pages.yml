@@ -1,0 +1,51 @@
+# The simulator page (web/sim, English and Portuguese) on GitHub Pages: the firmware compiled to WebAssembly.
+name: Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: zig (for the wasm) and Pillow
+        run: python3 -m pip install ziglang Pillow
+      - name: The simulator
+        env:
+          ZIG: python3 -m ziglang
+        run: tools/build_sim.sh
+      - name: The glue test
+        run: node tests/sim_glue.mjs
+      - name: The site (the page only)
+        run: |
+          mkdir -p site
+          cp build/sim/*.html build/sim/*.js build/sim/*.css build/sim/*.json build/sim/fm1sim.wasm site/
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

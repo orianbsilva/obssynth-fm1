@@ -1,0 +1,9 @@
+{
+  "what": "A four-voice synthesizer: two oscillators per voice, each STD (8 waves), SUPER (7 saws), WT (wavetables) or GRAIN (granular); a 12/24 dB multimode filter, two ADSRs, two LFOs, unison, delay, reverb and stereo chorus. 14 factory presets, 16 of yours. Play it in the browser first.",
+  "author": "Orian Beltrame",
+  "kinds": ["synth"],
+  "play": "https://orianbsilva.github.io/obssynth-fm1/",
+  "cheat": "https://orianbsilva.github.io/obssynth-fm1/#manual",
+  "image": "docs/img/screen-waves.png",
+  "color": "#EEA139"
+}

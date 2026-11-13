@@ -1,0 +1,20 @@
+# A v* tag: The Firmware Hub's shared fm1-build workflow builds the package from this tag's source, runs the tests,
+# attests (signs) it and attaches it to the tag's release. Do not add or replace the .fwsc by hand afterwards: the
+# hub only shows "Built from source on GitHub" for the attested file.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  build:
+    uses: zvenson/fm1-build/.github/workflows/build.yml@v1
+    permissions:
+      contents: write          # the release
+      id-token: write          # the signing certificate
+      attestations: write      # the attestation
+    with:
+      build: ./build.sh --release "${GITHUB_REF_NAME#v}"
+      test: tests/run_tests.sh
+      packages: build/*.fwsc
