@@ -157,6 +157,7 @@ function bindControls() {
     if (el && el.classList.contains('btn') && contextMenuLatches(lastPointerType)) toggleLatch(el.dataset.ctl);
   });
   device.addEventListener('pointerdown', e => {
+    if (poweredOff || !node) { e.preventDefault(); ready(); return; }   // off: the touch switches it on, plays nothing
     const el = e.target.closest('[data-ctl]');
     lastPointerType = e.pointerType;
     if (!el || e.button !== 0) return;
@@ -272,7 +273,7 @@ function paint() {
       els.ctl[`key:${n}`].classList.toggle('lit', ((keyLeds >>> n) & 1) === 1);
       els.ctl[`key:${n}`].classList.toggle('glow', ((keyGlow >>> n) & 1) === 1);
     }
-    if (pre !== undefined && preName.textContent !== (pre || '—')) {
+    if (pre !== undefined && !poweredOff && preName.textContent !== (pre || '—')) {
       preName.textContent = pre || '—';
       preName.classList.remove('off');
     }
@@ -309,6 +310,8 @@ function setSwitch(on) {
   instTag.classList.toggle('on', on);
   device.classList.toggle('powered-off', !on && !!node);
   for (const b of [prevBtn, nextBtn]) b.disabled = !on;
+  if (node) powerNote.textContent = on ? tr('On. Play the keys, or a clip.', 'Ligado. Toque as teclas, ou um clip.')
+    : tr('Off. Touch the FM-1 to switch it on again.', 'Desligado. Toque no FM-1 para ligar de novo.');
 }
 async function powerSwitch() {
   if (!node) return powerOn();
@@ -432,11 +435,12 @@ function bindPage() {
   for (const b of document.querySelectorAll('.btn-ui, #power-on, .display button'))   // a mouse click leaves no focus
     b.addEventListener('mousedown', e => e.preventDefault());                         // behind: Space plays, not it
   els.power.addEventListener('click', powerSwitch);
+  instTag.addEventListener('click', powerSwitch);                 // the FM-1 panel's own switch (in view on phones)
   els.power.disabled = false;
   els.power.classList.add('ready');
   preName.textContent = tr('switch it on', 'ligue');
   preName.classList.add('off');
-  powerNote.textContent = tr('Switch it on (POWER, top right), or play a clip.', 'Ligue (LIGAR, no alto à direita), ou toque um clip.');
+  powerNote.textContent = tr('Touch the FM-1 to switch it on, or play a clip.', 'Toque no FM-1 para ligar, ou toque um clip.');
 }
 
 // ---- what is new: the firmware this site runs (version.json, written by the build)
