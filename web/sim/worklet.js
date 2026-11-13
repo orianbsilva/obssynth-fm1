@@ -27,6 +27,7 @@ class Fm1Processor extends AudioWorkletProcessor {
     else if (m.t === 'master') s.master(m.value);
     else if (m.t === 'release') s.releaseAll();
     else if (m.t === 'midi') s.x.sim_midi(m.st, m.d1, m.d2);   // (clips.js: MIDI in, as over USB)
+    else if (m.t === 'preset') s.preset(m.idx);                 // (clips.js: the clip's sound)
   }
 
   process(inputs, outputs) {

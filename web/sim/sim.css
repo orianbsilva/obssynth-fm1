@@ -138,10 +138,11 @@ html { scroll-snap-type: y proximity; }
   display: flex; flex-wrap: wrap; gap: 8px; padding: 14px 16px; background: var(--k); border: 2px solid var(--w);
 }
 .confirm p { flex-basis: 100%; margin: 0 0 4px; color: var(--c5); }
-.clips {                                        /* the Clips panel, over the bar like the reset's */
-  position: absolute; bottom: calc(100% + 12px); right: 0; width: min(440px, calc(100vw - 32px)); white-space: normal;
-  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 14px 16px; background: var(--k);
-  border: 2px solid var(--w); z-index: 9; font: 14px/20px var(--mono); color: var(--c5);
+.clips {                                        /* the Clips panel: over the bar (narrow), beside the device (wide) */
+  position: absolute; left: 50%; bottom: 80px; transform: translateX(-50%); width: min(440px, 100% - 32px);
+  white-space: normal; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 14px 16px;
+  background: var(--k); border: 2px solid var(--w); z-index: 9; font: 14px/20px var(--mono); color: var(--c5);
+  opacity: var(--arrived, 0); pointer-events: var(--arrived-events, none); transition: opacity 0.45s steps(4);
 }
 .clips[hidden] { display: none; }
 .clips-title { flex-basis: 100%; margin: 0; color: var(--w); }
@@ -151,6 +152,9 @@ html { scroll-snap-type: y proximity; }
   font: inherit; }
 .clips button:hover { border-color: var(--w); color: var(--w); }
 .clips-status { flex-basis: 100%; margin: 4px 0 0; color: var(--c4); font-size: 12px; }
+.clips-sub { flex-basis: 100%; margin: 0; color: var(--c4); font-size: 12px; line-height: 16px; }
+.clips-pick { flex-basis: 100%; }
+.clips-pick select { flex: 1; }
 .play-bar .note { position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); width: max-content;
   max-width: calc(100vw - 32px); white-space: normal; text-align: center; margin: 0; color: var(--c4); pointer-events: none; }
 .help {                                         /* a sheet over the stage, above the Controls bar that opens it */
@@ -175,6 +179,18 @@ html { scroll-snap-type: y proximity; }
   .hero-stage.help-open .help { left: auto; right: 24px; top: 96px; bottom: auto; transform: none; width: var(--help-w);
     grid-template-columns: 1fr; align-content: start; max-height: calc(100vh - 222px); }
   .hero-stage.help-open .more-cue { opacity: 0; pointer-events: none; }
+}
+/* Clips beside the device, on its left, on wide screens (app.js CLIPS_W): open from the start; the clip list shown
+   whole (app.js gives the select a size) */
+.hero-stage { --clips-w: 300px; }
+@media (min-width: 1100px) {
+  .hero-stage.clips-open .scene { padding-left: calc(var(--clips-w) + 40px); }
+  .hero-stage.clips-open .clips { left: 24px; top: 96px; bottom: auto; transform: none; width: var(--clips-w);
+    max-height: calc(100vh - 222px); overflow: auto; align-content: start; }
+  .hero-stage.clips-open .clips-pick { flex-direction: column; align-items: stretch; }
+  .hero-stage.clips-open .clips select { max-width: none; }
+  .hero-stage.clips-open .clips-pick select option { padding: 2px 4px; }
+  .hero-stage.clips-open .clips-pick select option:checked { background: var(--w); color: var(--k); }
 }
 
 /* depth: the panel's parts stand off its face; walls around its outline give the body its depth (app.js) */

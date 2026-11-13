@@ -53,5 +53,10 @@ check('the backlight: HOME ENV LFO FX SAVE GLO SEL EDIT SEQ OCT- OCT+ glow, the 
   sim.glow() === ((1 << 6) | (1 << 2) | (1 << 3) | (1 << 0) | (1 << 7) | (1 << 5) | (1 << 1) | (1 << 4) | (1 << 9) |
                   (1 << 12) | (1 << 13)) &&
   sim.keyGlow() === 0x7FFFFFF);
+const shown = sim.fb();
+check('sim_preset: F9 (SUPER, the acid clips\' sound) loads', sim.preset(8) === 8);
+run(2205);
+check('.. its name on the screen', sim.fb().some((c, i) => c !== shown[i]));
+check('.. an entry past the list loads nothing', sim.preset(999) === 8);
 console.log(fails ? `sim_glue: ${fails} FAILED` : 'sim_glue: all ok');
 process.exit(fails ? 1 : 0);

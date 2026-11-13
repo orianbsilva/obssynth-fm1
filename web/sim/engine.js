@@ -54,6 +54,7 @@ export class Fm1Sim {
   btn(label, down) { this.x.sim_btn(label, down ? 1 : 0); }   // label: panel.c B_FX .. B_OCTUP
   key(n, down) { this.x.sim_key(n, down ? 1 : 0); }           // note key 0 (F3) .. 26 (G5)
   enc(role, steps) { this.x.sim_enc(role, steps); }           // role: EN_SELECT .. EN_K4, + = clockwise
+  preset(idx) { return this.x.sim_preset(idx >>> 0); }   // a preset by list entry (F1 = 0), as PRESETS loads it
   master(v) { this.x.sim_master(Math.max(0, Math.min(1023, Math.round(v)))); }
   releaseAll() {
     for (let b = 0; b < 14; b++) this.btn(b, false);

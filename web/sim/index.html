@@ -58,23 +58,24 @@
       <span class="power-note" id="power-note">Loading…</span>
       <button type="button" class="bar-btn" id="help-toggle" aria-expanded="false" aria-controls="help">Controls</button>
       <button type="button" class="bar-btn" id="clips-toggle" aria-expanded="false" aria-controls="clips">Clips</button>
-      <div id="clips" class="clips" role="dialog" aria-label="MIDI clips" hidden>
-        <p class="clips-title">MIDI clips: into the simulator, or into an FM-1 over USB</p>
-        <label>Clip <select id="clip-sel"></select></label>
-        <label>To <select id="clip-dest"></select></label>
-        <label>Channel <select id="clip-ch"></select></label>
-        <label class="clips-loop"><input type="checkbox" id="clip-loop"> Loop</label>
-        <button type="button" id="clip-play">Play</button>
-        <button type="button" id="clip-stop">Stop</button>
-        <button type="button" id="clip-midi" title="Asks the browser for access to the MIDI ports">MIDI ports</button>
-        <p id="clip-status" class="clips-status" role="status">From the console: fm1clips.play(0, { to: 'ObsSynthFM1', loop: true })</p>
-      </div>
       <button type="button" class="bar-btn" id="reset" aria-haspopup="dialog">Start over</button>
       <div id="reset-confirm" class="confirm" role="dialog" aria-label="Start over" hidden>
         <p>Erase what this browser saved and start the FM&#8209;1 from scratch?</p>
         <button type="button" id="reset-yes">Erase and start over</button>
         <button type="button" id="reset-no">Keep</button>
       </div>
+    </div>
+    <div id="clips" class="clips" role="dialog" aria-label="MIDI clips" hidden>
+      <p class="clips-title">MIDI clips</p>
+      <p class="clips-sub">Into the simulator, or into an FM-1 over USB. The acid ones play on F9 SUPER.</p>
+      <button type="button" id="clip-play">Play</button>
+      <button type="button" id="clip-stop">Stop</button>
+      <label class="clips-loop"><input type="checkbox" id="clip-loop" checked> Loop</label>
+      <label class="clips-pick">Clip <select id="clip-sel"></select></label>
+      <label>To <select id="clip-dest"></select></label>
+      <label>Channel <select id="clip-ch"></select></label>
+      <button type="button" id="clip-midi" title="Asks the browser for access to the MIDI ports">MIDI ports</button>
+      <p id="clip-status" class="clips-status" role="status">Pick one and Play (or double-click it).</p>
     </div>
     <a class="more-cue" id="more-cue" href="#manual">More below<span aria-hidden="true">↓</span></a>
     <div id="help" class="help" hidden>

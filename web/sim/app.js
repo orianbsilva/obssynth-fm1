@@ -108,13 +108,16 @@ function addHint(el, ctl) {
 }
 
 // geometry: phones show the FM-1's own landscape form while it flies in, then morph into the portrait simulator
-let phone = false, availW = 1000, availH = 600, morphNow = -1, powerAt = null, helpOpen = false;
+let phone = false, availW = 1000, availH = 600, morphNow = -1, powerAt = null, helpOpen = false, clipsOpen = false;
 const HELP_W = 320 + 40;                           // Controls beside the device (wide screens): its width and a gap
+const CLIPS_W = 300 + 40, CLIPS_WIDE = 1100;       // Clips beside it, on the left, from this width (sim.css)
 function fitScale(L) { return Math.max(0.2, Math.min(availW / L.W, availH / L.H, 1.2)); }
 function relayout() {
   phone = window.innerWidth < 700 && window.innerHeight > window.innerWidth;
-  const beside = helpOpen && window.innerWidth >= 900;
-  availW = Math.min(document.documentElement.clientWidth - 32 - (beside ? HELP_W : 0), 1000);
+  const beside = helpOpen && window.innerWidth >= 900, clipsBeside = clipsOpen && window.innerWidth >= CLIPS_WIDE;
+  availW = Math.min(document.documentElement.clientWidth - 32 - (beside ? HELP_W : 0) - (clipsBeside ? CLIPS_W : 0), 1000);
+  const list = document.getElementById('clip-sel');  // beside: the whole list; over the bar: a drop-down
+  if (list) list.size = clipsBeside ? Math.min(list.length, 9) : 0;
   availH = window.innerHeight - 96 - 118 - 8;       // the hero scene's padding: nav and the power switch above, the bar below
   geometry(phone ? Math.max(0, morphNow) : 0, true);
 }
@@ -363,23 +366,8 @@ async function powerOn() {
 
 // ---- page controls
 function bindPage() {
-  {                                                 // Clips: a panel over the bar (clips.js plays them)
-    const ct = document.getElementById('clips-toggle'), cp = document.getElementById('clips');
-    ct.addEventListener('click', () => {
-      cp.hidden = !cp.hidden;
-      ct.setAttribute('aria-expanded', String(!cp.hidden));
-    });
-    initClips(send);
-  }
-  const toggle = document.getElementById('help-toggle'), help = document.getElementById('help');
-  toggle.addEventListener('click', () => {
-    const open = help.hidden;
-    help.hidden = !open;
-    toggle.setAttribute('aria-expanded', String(open));
-    device.classList.toggle('show-hints', open);
-    helpOpen = open;                                // beside the device on wide screens: it moves left, refitted
+  const refit = () => {                             // a side panel opened or closed: the device moves, refitted
     stage.classList.add('easing');
-    stage.classList.toggle('help-open', open);
     relayout();
     const t0 = performance.now();
     const follow = now => {                         // the power switch follows the device while it moves
@@ -388,6 +376,29 @@ function bindPage() {
       else stage.classList.remove('easing');
     };
     requestAnimationFrame(follow);
+  };
+  {                                                 // Clips (clips.js plays them): beside the device on wide screens,
+    const ct = document.getElementById('clips-toggle'), cp = document.getElementById('clips');   // open from the start
+    const setClips = (open, ease) => {
+      cp.hidden = !open;
+      ct.setAttribute('aria-expanded', String(open));
+      clipsOpen = open;
+      stage.classList.toggle('clips-open', open);
+      if (ease) refit(); else relayout();
+    };
+    ct.addEventListener('click', () => setClips(cp.hidden, true));
+    initClips(send);
+    setClips(window.innerWidth >= CLIPS_WIDE, false);
+  }
+  const toggle = document.getElementById('help-toggle'), help = document.getElementById('help');
+  toggle.addEventListener('click', () => {
+    const open = help.hidden;
+    help.hidden = !open;
+    toggle.setAttribute('aria-expanded', String(open));
+    device.classList.toggle('show-hints', open);
+    helpOpen = open;                                // beside the device on wide screens: it moves left, refitted
+    stage.classList.toggle('help-open', open);
+    refit();
   });
   const confirm = document.getElementById('reset-confirm');
   document.getElementById('reset').addEventListener('click', () => { confirm.hidden = !confirm.hidden; });

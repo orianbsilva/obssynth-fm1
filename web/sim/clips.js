@@ -18,7 +18,25 @@ function chords(list, beats, vel = 90) {                             // chords, 
   return list.flatMap((ch, i) => ch.map(n => C(i * beats, beats * 0.95, n, vel)));
 }
 
+// the factory presets by list entry (presets.c FACTORY): F9 SUPER
+export const SUPER = 8;
+
 export const CLIPS = [
+  // the acid clips: sixteenths with accents, on F9 SUPER (the four voices in unison, the chorus) in the simulator
+  { name: 'Acid 16', bpm: 132, preset: SUPER,
+    notes: seq([36, 36, 48, 36, 39, 51, 36, 43, 36, 46, 36, 48, 41, 36, 53, 39], 0.25, 0.18,
+               [120, 70, 110, 60, 90, 127, 60, 100, 70, 110, 60, 127, 80, 60, 120, 90]) },
+  { name: tr('Acid lead', 'Acid lead'), bpm: 136, preset: SUPER,
+    notes: seq([57, 57, 69, 57, 60, 57, 64, 67, 57, 57, 69, 57, 72, 69, 67, 64], 0.25, 0.2,
+               [120, 60, 110, 60, 90, 60, 100, 120, 120, 60, 110, 60, 127, 90, 100, 80]) },
+  { name: tr('Acid octaves', 'Acid oitavas'), bpm: 130, preset: SUPER,
+    notes: seq([41, 53, 41, 53, 44, 56, 41, 53, 39, 51, 41, 53, 46, 58, 44, 56], 0.25, 0.16,
+               [127, 70, 100, 70, 120, 70, 100, 70, 127, 70, 100, 70, 120, 90, 110, 80]) },
+  { name: tr('Acid slide', 'Acid slide'), bpm: 128, preset: SUPER,              // long notes into short ones: GLIDE
+    notes: [C(0, 0.5, 48, 120), C(0.5, 0.2, 48, 70), C(0.75, 0.6, 60, 127), C(1.5, 0.2, 51, 80), C(1.75, 0.2, 48, 90),
+            C(2, 0.5, 55, 120), C(2.5, 0.2, 53, 70), C(2.75, 0.5, 51, 110), C(3.25, 0.2, 48, 70), C(3.5, 0.45, 63, 127)] },
+  { name: tr('Acid stabs', 'Acid stabs'), bpm: 132, preset: SUPER,              // chords on the offbeats
+    notes: chords([[60, 63, 67], [60, 63, 67], [58, 62, 65], [56, 60, 63]], 1, 110).map(([st, l, n, v]) => [st + 0.5, 0.3, n, v]) },
   { name: tr('C scale', 'Escala de C'), bpm: 120, notes: seq([60, 62, 64, 65, 67, 69, 71, 72, 71, 69, 67, 65, 64, 62, 60], 0.5) },
   { name: tr('Simple melody', 'Melodia simples'), bpm: 110,
     notes: [...seq([60, 64, 67, 72], 0.5), C(2, 1, 71), ...seq([67, 64, 62], 0.5, 0.45, 100, 3), C(4.5, 1, 60),
@@ -29,9 +47,6 @@ export const CLIPS = [
   { name: tr('Long pad', 'Pad longo'), bpm: 70, notes: chords([[48, 55, 60, 64], [45, 52, 57, 60]], 8, 80) },
   { name: tr('Eighth-note bass', 'Baixo em colcheias'), bpm: 120,
     notes: seq([36, 36, 48, 36, 39, 36, 43, 41, 36, 36, 48, 36, 46, 43, 41, 39], 0.5, 0.4, [110, 80, 100, 80]) },
-  { name: 'Acid 16', bpm: 132,
-    notes: seq([36, 36, 48, 36, 39, 51, 36, 43, 36, 46, 36, 48, 41, 36, 53, 39], 0.25, 0.18,
-               [120, 70, 110, 60, 90, 127, 60, 100, 70, 110, 60, 127, 80, 60, 120, 90]) },
   { name: tr('Fast staccato', 'Staccato rápido'), bpm: 140, notes: seq(Array(16).fill(64), 0.25, 0.08) },
   { name: 'Legato (glide)', bpm: 96,                                  // each note held into the next: MONO / LEGATO
     notes: [C(0, 1.2, 60), C(1, 1.2, 67), C(2, 1.2, 64), C(3, 1.2, 72), C(4, 1.2, 70), C(5, 2, 63)] },
@@ -71,6 +86,8 @@ function tick() {
 
 let onEnd = () => {};
 
+export const playing = () => timer !== null;
+
 export function stop() {
   if (timer) clearInterval(timer);
   timer = null;
@@ -96,6 +113,8 @@ export function play(clip, send, ch = 1, loop = false, ended = () => {}) {
 }
 
 // ---- the panel: a clip, where to (the simulator, or a MIDI output), a channel, loop, play / stop
+export const DEFAULT_CLIP = 'Acid 16';                             // the one selected when the page opens
+
 export async function initClips(sendSim) {
   const sel = document.getElementById('clip-sel'), dest = document.getElementById('clip-dest');
   const chSel = document.getElementById('clip-ch'), loopBox = document.getElementById('clip-loop');
@@ -104,7 +123,8 @@ export async function initClips(sendSim) {
   const toSim = (st, d1, d2) => sendSim({ t: 'midi', st, d1, d2 });
   let access = null;
   if (!sel) return;
-  CLIPS.forEach((c, i) => sel.add(new Option(c.name, String(i))));
+  CLIPS.forEach((c, i) => sel.add(new Option(c.preset == null ? c.name : `${c.name} · SUPER`, String(i))));
+  sel.value = String(Math.max(0, CLIPS.findIndex(c => c.name === DEFAULT_CLIP)));
   for (let c = 1; c <= 16; c++) chSel.add(new Option(String(c), String(c)));
 
   function outputs() {                                                 // the destination list, the FM-1 first
@@ -139,6 +159,7 @@ export async function initClips(sendSim) {
   document.getElementById('clip-midi').addEventListener('click', midi);
   playBtn.addEventListener('click', () => {
     const c = CLIPS[Number(sel.value)];
+    if (c.preset != null && dest.value === 'sim') sendSim({ t: 'preset', idx: c.preset });   // its sound first
     play(c, sender(), Number(chSel.value), loopBox.checked, () => { status.textContent = tr('Done.', 'Fim.'); });
     const to = dest.options[dest.selectedIndex].text;
     status.textContent = tr(`Playing ${c.name} (${c.bpm} BPM) on ${to}, channel ${chSel.value}`,
@@ -146,6 +167,8 @@ export async function initClips(sendSim) {
                          (loopBox.checked ? tr(', looped.', ', em loop.') : '.');
   });
   stopBtn.addEventListener('click', () => { stop(); status.textContent = tr('Stopped.', 'Parado.'); });
+  sel.addEventListener('change', () => { if (playing()) playBtn.click(); });   // another clip while one plays: it
+  sel.addEventListener('dblclick', () => playBtn.click());                      // takes over; a double click plays
 
   // the console's command: fm1clips.play(0, { to: 'ObsSynthFM1', ch: 1, loop: true })
   window.fm1clips = {
@@ -160,6 +183,7 @@ export async function initClips(sendSim) {
         if (!o) return tr(`no MIDI output matching "${to}"`, `nenhuma saída MIDI com "${to}"`);
         send = (st, d1, d2) => o.send([st, d1, d2]);
       }
+      if (c.preset != null && to === 'sim') sendSim({ t: 'preset', idx: c.preset });
       play(c, send, ch, loop);
       return tr(`playing ${c.name}`, `tocando ${c.name}`);
     },

@@ -37,7 +37,7 @@ $CC "${CFLAGS[@]}" -o "$OUT/host/sim_test" tests/sim_test.c -lm
 [ "$HOST_ONLY" = 1 ] && exit 0
 
 EXPORTS=(sim_init sim_render sim_frame sim_btn sim_key sim_enc sim_master sim_leds sim_key_leds sim_fb sim_audio sim_playing
-         sim_flash sim_flash_reset sim_flash_dirty sim_flash_clean sim_glow sim_key_glow sim_midi)
+         sim_flash sim_flash_reset sim_flash_dirty sim_flash_clean sim_glow sim_key_glow sim_midi sim_preset)
 $ZIG cc -target wasm32-wasi -mexec-model=reactor -O2 -Wall -Wno-unused-function "${VDEFS[@]}" "${EXPORTS[@]/#/-Wl,--export=}" \
     -I"$GEN" -Ifirmware/src -Itests -o "$OUT/fm1sim.wasm" tests/sim_core.c
 cp web/sim/* "$OUT/"

@@ -105,6 +105,21 @@ void sim_enc(uint32_t role, int32_t steps)               /* role = EN_SELECT .. 
 
 void sim_master(uint32_t v) { sim_master_raw = v > 1023u ? 1023u : v; }
 
+/* the page's clips (web/sim/clips.js): a preset by its list entry, as the PRESETS knob loads one (ui.c), the name
+ * shown; returns the entry now (an out-of-range idx loads nothing) */
+uint32_t sim_preset(uint32_t idx)
+{
+    char b[16];
+    if (idx < preset_count()) {
+        ui.pre = idx;
+        ui.pre_ed = 0;
+        preset_load(idx);
+        preset_name(b, idx);
+        ui_say(b, 0);
+    }
+    return ui.pre;
+}
+
 int sim_midi(uint32_t status, uint32_t d1, uint32_t d2)  /* a MIDI message in, as usb.c queues it (1: queued) */
 {
     uint32_t cin = (status >> 4) & 15u;
