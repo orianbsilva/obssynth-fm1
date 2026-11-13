@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Drum machine fork: 2026 DEADACTIVE; ObsSynth FM-1: 2026 Orian Beltrame
-// The ObsSynth FM-1 page: the FM-1 panel drawn flat inside its panel (layout.js: the landscape layout, or the
-// stacked portrait one on narrow screens), pointer and keyboard input turned into messages for the worklet
+// The ObsSynth FM-1 page: the FM-1 panel drawn flat inside its panel, in its true proportions (layout.js: the
+// landscape layout; upright phones are asked to turn), pointer and keyboard input turned into messages for the worklet
 // (worklet.js runs the firmware), the frames it sends back painted, the flash it writes kept in IndexedDB
 // (store.js); around it the top bar's preset display and power switch, the clips, the sounds' demos, the palettes.
 import { BTN, ENC, KEYS, HeldSet, keyEvent, keyHint, contextMenuLatches } from './controls.js';
 import { FlashStore, openFlashDb } from './store.js';
 import { needsResume, playbackSession } from './audio.js';
 import { tr, LANG } from './i18n.js';
-import { LAYOUTS, DECO_CLASS, blend } from './layout.js';
+import { LAYOUTS, DECO_CLASS, blend } from './layout.js';   // (the portrait layout is not used: true proportions)
 import { initClips } from './clips.js';
 
 // ---- the panel's elements (built once, placed per layout)
@@ -86,38 +86,49 @@ function addHint(el, ctl) {
   el.append(h);
 }
 
-// ---- geometry: the landscape FM-1, or the portrait one when its panel is narrow; scaled to the panel's width and
-// to what the window leaves under the top bar
-let portrait = null;
+// ---- geometry: always the FM-1's own landscape layout, in its true proportions, scaled to its panel's width and to
+// what the window leaves for it. On a phone held upright it is small: a note asks to turn the phone; turned, the
+// page scrolls to it and it takes the whole height.
+const rotateNote = document.getElementById('rotate');
+let placed = false, wasLandscapePhone = false;
 function relayout() {
   const w = stage.clientWidth;
   if (!w) return;
-  const nowPortrait = w < 600;
-  const L = LAYOUTS.landscape, G = nowPortrait ? blend(L, LAYOUTS.portrait, 1) : blend(L, L, 0);
-  if (nowPortrait !== portrait) {
-    portrait = nowPortrait;
-    for (const [name, d] of Object.entries(G.deco)) {
+  const G = LAYOUTS.landscape;
+  if (!placed) {
+    placed = true;
+    const B = blend(G, G, 0);
+    for (const [name, d] of Object.entries(B.deco)) {
       place(els.deco[name], d.box);
       els.deco[name].style.opacity = d.opacity;
     }
-    place(lcd, G.lcd);
-    for (const [ctl, b] of Object.entries(G.ctl)) place(els.ctl[ctl], b);
-    for (const [id, b] of Object.entries(G.enc)) {
+    place(lcd, B.lcd);
+    for (const [ctl, b] of Object.entries(B.ctl)) place(els.ctl[ctl], b);
+    for (const [id, b] of Object.entries(B.enc)) {
       place(els.enc[id], b);
       place(els.lbl[id], [b[0] - 30, b[1] - 20, b[2] + 60, 14]);
     }
     device.style.width = `${G.W}px`;
     device.style.height = `${G.H}px`;
   }
-  // the height the first screen leaves it: from its top (in the page, unscrolled) to the window's bottom, less the
-  // tools row under it and the panel's padding
+  const phone = Math.min(window.innerWidth, window.innerHeight) < 560;
+  const upright = window.innerHeight > window.innerWidth;
   const tools = stage.nextElementSibling?.offsetHeight ?? 40;
-  const topInPage = stage.getBoundingClientRect().top + window.scrollY;
-  const availH = Math.max(260, window.innerHeight - topInPage - tools - 34);
-  const scale = Math.max(0.25, Math.min(w / G.W, nowPortrait ? 2 : availH / G.H, 1.1));
+  let availH;
+  if (phone && !upright) availH = window.innerHeight - 16;                  // turned: the FM-1 fills the screen
+  else {                                                                    // the first screen, under the top bar
+    const topInPage = stage.getBoundingClientRect().top + window.scrollY;
+    availH = Math.max(260, window.innerHeight - topInPage - tools - 34);
+  }
+  const scale = Math.max(0.2, Math.min(w / G.W, availH / G.H, 1.1));
   device.style.setProperty('--scale', scale);
   fit.style.width = `${G.W * scale}px`;
   fit.style.height = `${G.H * scale}px`;
+  if (rotateNote) rotateNote.hidden = !(phone && upright);
+  const landscapePhone = phone && !upright;
+  if (landscapePhone && !wasLandscapePhone)                                  // just turned: the FM-1 in view
+    requestAnimationFrame(() => stage.scrollIntoView({ block: 'center' }));
+  wasLandscapePhone = landscapePhone;
 }
 
 // ---- input -> worklet

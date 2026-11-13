@@ -98,6 +98,10 @@ main { max-width: 1480px; margin: 0 auto; padding: 16px 16px 0; display: grid; g
 .clips-status { margin: auto 0 0; font: 12px/1.5 var(--mono); color: var(--muted); }
 .clips .small { font-size: 13px; line-height: 1.45; margin: 0; }
 .clips #clip-dest { max-width: 190px; }
+.rotate { display: flex; gap: 10px; align-items: center; margin: 4px 0 8px; padding: 8px 12px; border: 1px solid var(--accent);
+  border-radius: 6px; color: var(--ink); font-size: 14px; }
+.rotate[hidden] { display: none; }
+.rotate span { color: var(--accent); font-size: 22px; line-height: 1; }
 .instrument .stage { position: relative; display: flex; justify-content: center; padding: 8px 0 4px; }
 .instrument .status { margin: 0; min-height: 1.5em; color: var(--muted); font: 13px/1.5 var(--mono); }
 .instrument .tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; margin-top: 8px; }
