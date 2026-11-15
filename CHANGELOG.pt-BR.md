@@ -2,6 +2,10 @@
 
 [English](CHANGELOG.md)
 
+## 0.2.0 - 2026-11-15
+
+- SUPER: um formato para as suas sete vozes, o WAVE do oscilador na página + (WAVE SIDE, depois NOISE NCOL ou SYNC RING): SAW como antes; SQR, o DETUN abrindo também a largura das quadradas laterais (50 +- 30 %), oco como um PWM; TRI, espalhamento mais estreito e um fold na soma que cresce com o DETUN; SIN, sete senos desafinados, o batimento lento de um órgão ou de um pad. O STD não muda. Presets novos F15 SQUARES (SUPER SQR) e F16 GLASS (SUPER TRI).
+
 ## 0.1.1 - 2026-11-15
 
 - Pacote: identidade nova, FM-1_627010, só do ObsSynth (a FM-1_917 caía na faixa FM-1_91x do Felucca). Nada mais muda; a partir da 0.1.0, instale como sempre.

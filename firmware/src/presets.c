@@ -7,7 +7,7 @@
  * default from an older one. An older bank (USB1: 48 of room, 0.1.0; USB2: 80) is read byte by byte as its layout
  * and kept in the new one at the next save. Loading writes the parameters as the knobs do (engine.c synth_param): voices
  * sounding change with them; the device's settings (GLO: P_NPRESET on) are never a preset's: settings_* below. */
-#define NFACT 14u
+#define NFACT 16u
 #define NUSER 16u
 #define PRE_NAME 8u                                      /* a name's characters, 0-padded (not terminated at 8) */
 #define PRE_NPAR 112u
@@ -65,6 +65,13 @@ static const fpreset_t FACTORY[NFACT] = {
                   {P_ENG2, OE_GR}, {P_GSMP2, 0}, {P_SEMI2, 12}, {P_WPOS2, 70}, {P_GSPRAY2, 60}, {P_MIX, 45},
                   {P_CUT, 110}, {P_FENV, 0}, {P_AATK, 20}, {P_ADEC, 90}, {P_ASUS, 60}, {P_AREL, 85}, {P_DMIX, 35},
                   {P_DFDBK, 60}, {P_RMIX, 50}, {P_RSIZE, 110})},
+    {"SQUARES", KV({P_ENG1, OE_SUPER}, {P_WAVE, W_SQR}, {P_SDET1, 80}, {P_SSIDE1, 95}, {P_SUB, 40}, {P_MIX, 0},
+                   {P_CUT, 70}, {P_RESO, 25}, {P_FENV, 20}, {P_FDEC, 70}, {P_FSUS, 40}, {P_AATK, 5}, {P_AREL, 50},
+                   {P_CMIX, 35}, {P_DMIX, 25}, {P_RMIX, 35}, {P_RSIZE, 100})},
+    {"GLASS", KV({P_ENG1, OE_SUPER}, {P_WAVE, W_TRI}, {P_SDET1, 100}, {P_SSIDE1, 100}, {P_ENG2, OE_SUPER},
+                 {P_WAVE2, W_TRI}, {P_SDET2, 60}, {P_SEMI2, 12}, {P_MIX, 40}, {P_CUT, 110}, {P_FENV, 0},
+                 {P_AATK, 45}, {P_ADEC, 90}, {P_ASUS, 70}, {P_AREL, 80}, {P_L1WAVE, LW_TRI}, {P_L1RATE, 20},
+                 {P_L1DEST, LD_DET1}, {P_L1DEPTH, 30}, {P_CMIX, 50}, {P_RMIX, 60}, {P_RSIZE, 120})},
 };
 
 typedef struct { char name[PRE_NAME]; int8_t v[PRE_NPAR]; } upreset_t;

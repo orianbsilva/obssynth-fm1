@@ -11,14 +11,14 @@ WebAssembly. A base veio do [Hortator](https://github.com/deadactive/hortator) (
 knobs, LCD, saída de áudio I2S, loader de atualização e o simulador. A bateria saiu; a voz e a tela são novas, a
 partir dos instrumentos ObsSynth do desktop.
 
-> **Estado: 0.1.0, testado num FM-1:** instalado a partir do firmware original (V15) e de outro firmware
+> **Estado: 0.2.0, testado num FM-1:** instalado a partir do firmware original (V15) e de outro firmware
 > customizado, e removido de novo. Instalação por sua conta e risco, sem garantia; o
 > [caminho de volta](#saindo-deste-firmware) está abaixo.
 
 ## O que faz
 
 - **Motores de oscilador** (ALGORITHM, por oscilador): STD (SAW, SQR, TRI, SIN, RAMP, FOLD, FM, OCT; o PW vira SHAPE
-  em cada uma), SUPER (7 serras, DETUN e SIDE, com a energia de uma), WT (4 bancos de wavetable, POS e TABLE, 10
+  em cada uma), SUPER (7 vozes desafinadas de SAW, SQR, TRI ou SIN, DETUN e SIDE, com a energia de uma), WT (4 bancos de wavetable, POS e TABLE, 10
   níveis por oitava, sem aliasing; os LFOs podem mover o POS) e GRAIN (granular sobre 3 amostras: ORGAN e BELL do
   VCSL, CC0, e uma VOX gerada; até 6 grãos com janela Hann por oscilador e voz, POS, SMPL, SIZE, DENS e SPRAY).
 - **Voz:** 2 osciladores (o OSC 2 com SEMI, FINE e MIX), SUB, NOISE em seis cores, SYNC e RING → filtro de 12 ou 24 dB
@@ -30,7 +30,7 @@ partir dos instrumentos ObsSynth do desktop.
   a forma, a posição ou o detune de um oscilador só, ou NOISE) e DEPTH ±; TRIG, FADE e PHASE.
 - **Efeitos:** DELAY (TIME 10 ms–1,47 s, FDBK, COLR, MIX) e um reverb ROOM (SIZE, DAMP, DLY, MIX), os do Hortator; um
   CHORUS estéreo (RATE, DEPTH, WIDTH, MIX). Saída estéreo com saturação suave.
-- **Presets:** 14 sons de fábrica e 16 seus na flash (o `storage.c` do Felucca: registros A/B, um corte de energia
+- **Presets:** 16 sons de fábrica e 16 seus na flash (o `storage.c` do Felucca: registros A/B, um corte de energia
   mantém o banco anterior).
 - **Tela:** cada página desenha o que edita: as curvas dos envelopes, a onda do LFO, a resposta do filtro, a
   wavetable, os grãos ao vivo; nas paletas do ObsSynth (GLOBAL 2).
@@ -73,7 +73,7 @@ do FM-1 funcionam (o Puya P25Q80 e o UC25HQ80 das unidades vendidas desde o outo
 ## Conferir um pacote
 
 ```
-gh attestation verify obssynth-fm1-0.1.1.fwsc --repo orianbsilva/obssynth-fm1 \
+gh attestation verify obssynth-fm1-0.2.0.fwsc --repo orianbsilva/obssynth-fm1 \
     --signer-workflow zvenson/fm1-build/.github/workflows/build.yml
 ```
 
@@ -81,7 +81,7 @@ gh attestation verify obssynth-fm1-0.1.1.fwsc --repo orianbsilva/obssynth-fm1 \
 
 | O quê | Como |
 | --- | --- |
-| O firmware do aparelho | `./build.sh` (o toolchain da JieLi e o SDK AC79: [BUILDING.md](BUILDING.md)); `./build.sh --release 0.1.1` gera o pacote da release |
+| O firmware do aparelho | `./build.sh` (o toolchain da JieLi e o SDK AC79: [BUILDING.md](BUILDING.md)); `./build.sh --release 0.2.0` gera o pacote da release |
 | O simulador | `tools/build_sim.sh`, depois `python3 -m http.server -d build/sim 8000` ([docs/SIMULATOR.md](docs/SIMULATOR.md)); precisa de `cc` e `zig` (ou `ZIG="python3 -m ziglang"`) |
 | Os testes | `tests/run_tests.sh` (sem aparelho, sem toolchain) |
 

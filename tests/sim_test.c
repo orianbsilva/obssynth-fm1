@@ -440,8 +440,8 @@ int main(void)
           par[P_WAVE2] == W_SQR && par[P_SEMI2] == -12 && par[P_MIX] == 50);
     sim_enc(EN_PRESET, -2);
     render(0, SIM_FRAME_SAMPLES * 2u);
-    check("PRESETS back past F1: wraps to the last one (F14 CHIMES: OSC 1 and 2 GRAIN)", ui.pre == NFACT - 1u &&
-          par[P_ENG1] == OE_GR && par[P_ENG2] == OE_GR);
+    check("PRESETS back past F1: wraps to the last one (F16 GLASS: OSC 1 and 2 SUPER TRI)", ui.pre == NFACT - 1u &&
+          par[P_ENG1] == OE_SUPER && par[P_ENG2] == OE_SUPER && par[P_WAVE] == W_TRI);
     for (i = 0; i < NFACT; i++) {                        /* every factory preset sounds, bounded, and ends */
         uint32_t w;
         float pk;

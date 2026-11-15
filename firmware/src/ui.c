@@ -241,6 +241,11 @@ static uint32_t page_param(uint32_t v, uint32_t k)
         return P_UDET;
     if ((v == PG_PLUS0 || v == PG_PLUS0 + 1u) && par[OSC_P(v - PG_PLUS0, 0)] == OE_GR)
         return GR_P(v - PG_PLUS0, k & 3u);
+    if ((v == PG_PLUS0 || v == PG_PLUS0 + 1u) && par[OSC_P(v - PG_PLUS0, 0)] == OE_SUPER) {
+        static const uint8_t SUP[2][4] = {{P_WAVE, OSC_P(0, 2), P_NOISE, P_NCOL},   /* SUPER's + pages: WAVE (its */
+                                          {P_WAVE2, OSC_P(1, 2), P_SYNC, P_RING}};  /* shape) SIDE, then the rest */
+        return SUP[v - PG_PLUS0][k & 3u];
+    }
     if ((k & 3u) == 0u && (v <= 1u || v == PG_PLUS0 || v == PG_PLUS0 + 1u)) {
         n = v <= 1u ? v : v - PG_PLUS0;
         if (par[OSC_P(n, 0)] == OE_GR && v <= 1u)
@@ -355,6 +360,9 @@ static void ui_input(void)
                 c = (c % (int32_t)NAME_NCH + (int32_t)NAME_NCH) % (int32_t)NAME_NCH;   /* wrapping */
                 ui.save_name[ui.save_cur] = NAME_CH[c];
             }
+        } else if (d && (id == P_WAVE || id == P_WAVE2) && par[OSC_P(id == P_WAVE2, 0)] == OE_SUPER) {
+            synth_param(id, clamp(super_wave(par[id]) + d, W_SAW, W_SIN));   /* SUPER: SAW SQR TRI SIN */
+            ui.pre_ed = 1;
         } else if (d && id < P_COUNT) {
             int32_t r = PARAMS[id].max - PARAMS[id].min;
             synth_param(id, par[id] + (r > 16 && (d > 1 || d < -1) ? d * 2 : d));   /* a quick turn: x2 */
@@ -740,20 +748,23 @@ static void draw_super(uint32_t n)
 {
     int32_t det = par[OSC_P(n, 1)], side = par[OSC_P(n, 2)], ac = 44 * (32767 - side * 103) / 32767;
     int32_t as = 44 * side / 127;                        /* (the sides drawn as loud as the centre at SIDE 127) */
+    int32_t sw = super_wave(par[n ? P_WAVE2 : P_WAVE]), dd = super_det(sw, det);
     uint32_t px, k;
-    for (k = 0; k < 6u; k++) {
-        int64_t d = 65536 + 12 * (SOFF[k] * det * 60 * 38 / (1000 * 127));
+    for (k = 0; k < 6u; k++) {                           /* (the voices' shape: SQR's sides at their widths) */
+        int64_t d = 65536 + 12 * (SOFF[k] * dd * 60 * 38 / (1000 * 127));
+        uint32_t pw = super_pw(k, det);
         for (px = 0; px < WV_W; px++) {
             int64_t off = ((int64_t)px - (int64_t)(WV_W / 2)) * (int64_t)WV_PH * d >> 16;
             uint32_t ph = (WV_W / 2u) * WV_PH + 0x80000000u + (uint32_t)off;
-            wv_y[px] = (int16_t)(64 - saw_tick(ph, WV_PH) * as / 32767);
+            wv_y[px] = (int16_t)(64 - super_tick(ph, WV_PH, sw, pw) * as / 32767);
         }
         wv_plot(WV_X, WV_W, 0);
     }
     for (px = 0; px < WV_W; px++)
-        wv_y[px] = (int16_t)(64 - saw_tick(px * WV_PH + 0x80000000u, WV_PH) * ac / 32767);
+        wv_y[px] = (int16_t)(64 - super_tick(px * WV_PH + 0x80000000u, WV_PH, sw, 0x80000000u) * ac / 32767);
     wv_plot(WV_X, WV_W, 2);
-    md_text(WV_X, 4, &MD_F3, 2, "7 SAWS", C_INK);
+    md_text(WV_X, 4, &MD_F3, 2, sw == W_SQR ? "7 SQUARES" : sw == W_TRI ? "7 TRIANGLES" : sw == W_SIN ? "7 SINES" : "7 SAWS",
+            C_INK);
 }
 
 /* the voice the GRAIN view follows: the newest sounding, -1 none */

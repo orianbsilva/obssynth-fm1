@@ -472,6 +472,12 @@ static int32_t lfo_mod(uint32_t d)
  * mpos, mshape, mdet the LFOs' on its POS, SHAPE (PW) and DETUN (+-64 each) */
 static const int16_t SOFF[6] = {-1000, -570, -180, 180, 560, 980};      /* SUPER: the sides' spread (/1000) */
 
+/* SUPER's shape from the oscillator's WAVE (SAW, SQR, TRI, SIN; another wave: SAW), its detune (TRI spreads 3/5 as
+ * far: triangles beat slowly), a SQR side's width (DETUN takes the outer ones to 50 +- 30 %) */
+static int32_t super_wave(int32_t w) { return w >= W_SAW && w <= W_SIN ? w : W_SAW; }
+static int32_t super_det(int32_t sw, int32_t det) { return sw == W_TRI ? det * 3 / 5 : det; }
+static uint32_t super_pw(uint32_t k, int32_t det) { return 0x80000000u + (uint32_t)(int32_t)((int64_t)SOFF[k] * det * 10146); }
+
 static void osc_setup(oscb_t *o, uint32_t n, uint32_t inc, int32_t mpos, int32_t mshape, int32_t mdet)
 {
     uint32_t k;
@@ -481,8 +487,13 @@ static void osc_setup(oscb_t *o, uint32_t n, uint32_t inc, int32_t mpos, int32_t
     o->pw = 0x80000000u + (uint32_t)((clamp(par[n ? P_PW2 : P_PW1] + mshape, 0, 127) - 64) * 0x1CCCCCD);   /* 5 .. 94 % */
     if (o->eng == OE_SUPER) {
         int32_t det = clamp(par[OSC_P(n, 1)] + mdet, 0, 127), side = par[OSC_P(n, 2)];
-        for (k = 0; k < 6u; k++)                         /* +-60 cents outer at DETUN 127 (1 cent ~ 37.9 / 65536) */
-            o->sinc[k] = (uint32_t)(((uint64_t)inc * (uint32_t)(65536 + SOFF[k] * det * 60 * 38 / (1000 * 127))) >> 16);
+        int32_t sw = super_wave(o->wave), dd = super_det(sw, det);
+        o->swave = sw;
+        o->sfold = 32768 + det * 400;                    /* TRI: x1 (a sine-ish shaping) .. x2.55 (folding) */
+        for (k = 0; k < 6u; k++) {                       /* +-60 cents outer at DETUN 127 (1 cent ~ 37.9 / 65536) */
+            o->sinc[k] = (uint32_t)(((uint64_t)inc * (uint32_t)(65536 + SOFF[k] * dd * 60 * 38 / (1000 * 127))) >> 16);
+            o->spw[k] = super_pw(k, det);
+        }
         o->center = 32767 - side * 103;                  /* equal power: the centre 1 .. 0.6, each side 0 .. 0.33 */
         o->side = side * 84;                             /* (0.6^2 + 6 x 0.33^2 = 1: one saw's level) */
     } else if (o->eng == OE_WT) {

@@ -11,13 +11,13 @@ WebAssembly. Its base comes from [Hortator](https://github.com/deadactive/hortat
 knob scan, the LCD, the I2S audio out, the update loader and the simulator. The drum machine is gone; the voice and
 the screen are new, after the ObsSynth desktop instruments.
 
-> **Status: 0.1.0, tested on an FM-1:** installed from the stock firmware (V15) and from another custom firmware,
+> **Status: 0.2.0, tested on an FM-1:** installed from the stock firmware (V15) and from another custom firmware,
 > and removed again. Install at your own risk, with no warranty; the [way back](#leaving-this-firmware) is below.
 
 ## What it does
 
 - **Oscillator engines** (ALGORITHM, per oscillator): STD (SAW, SQR, TRI, SIN, RAMP, FOLD, FM, OCT; PW becomes
-  SHAPE on each), SUPER (7 saws, DETUN and SIDE, at the energy of one), WT (4 wavetable banks, POS and TABLE, 10
+  SHAPE on each), SUPER (7 detuned voices of SAW, SQR, TRI or SIN, DETUN and SIDE, at the energy of one), WT (4 wavetable banks, POS and TABLE, 10
   levels per octave, no aliasing; the LFOs can move POS) and GRAIN (granular over 3 samples: ORGAN and BELL from
   VCSL, CC0, and a generated VOX; up to 6 Hann-windowed grains per oscillator and voice, POS, SMPL, SIZE, DENS and
   SPRAY).
@@ -30,7 +30,7 @@ the screen are new, after the ObsSynth desktop instruments.
   oscillator's pitch, shape, position or detune, or NOISE) and DEPTH ±; TRIG, FADE and PHASE.
 - **Effects:** DELAY (TIME 10 ms–1.47 s, FDBK, COLR, MIX) and a ROOM reverb (SIZE, DAMP, DLY, MIX), Hortator's; a
   stereo CHORUS (RATE, DEPTH, WIDTH, MIX). Stereo out with a soft clip.
-- **Presets:** 14 factory sounds and 16 of your own on the flash (Felucca's `storage.c`: A/B records, so a power cut
+- **Presets:** 16 factory sounds and 16 of your own on the flash (Felucca's `storage.c`: A/B records, so a power cut
   keeps the previous bank).
 - **Screen:** each page draws what it edits: the envelope curves, the LFO wave, the filter response, the wavetable,
   the live grains; in the ObsSynth palettes (GLOBAL 2).
@@ -73,7 +73,7 @@ flash chips are supported (the Puya P25Q80 and the UC25HQ80 of units sold since 
 ## Verify a package
 
 ```
-gh attestation verify obssynth-fm1-0.1.1.fwsc --repo orianbsilva/obssynth-fm1 \
+gh attestation verify obssynth-fm1-0.2.0.fwsc --repo orianbsilva/obssynth-fm1 \
     --signer-workflow zvenson/fm1-build/.github/workflows/build.yml
 ```
 
@@ -81,7 +81,7 @@ gh attestation verify obssynth-fm1-0.1.1.fwsc --repo orianbsilva/obssynth-fm1 \
 
 | What | How |
 | --- | --- |
-| The device firmware | `./build.sh` (the JieLi toolchain and AC79 SDK: [BUILDING.md](BUILDING.md)); `./build.sh --release 0.1.1` writes the release package |
+| The device firmware | `./build.sh` (the JieLi toolchain and AC79 SDK: [BUILDING.md](BUILDING.md)); `./build.sh --release 0.2.0` writes the release package |
 | The simulator | `tools/build_sim.sh`, then `python3 -m http.server -d build/sim 8000` ([docs/SIMULATOR.md](docs/SIMULATOR.md)); needs `cc` and `zig` (or `ZIG="python3 -m ziglang"`) |
 | The tests | `tests/run_tests.sh` (no hardware, no toolchain) |
 

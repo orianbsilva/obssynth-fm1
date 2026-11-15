@@ -39,7 +39,7 @@ or the boot-loop guard after two crashes in the first 30 s) and [docs/RECOVERY.m
 
 ```
 ./build.sh                       # the app and the loader, with the image checks
-./build.sh --release 0.1.1       # + build/obssynth-fm1-0.1.1.fwsc (the version must be VERSION.txt's)
+./build.sh --release 0.2.0       # + build/obssynth-fm1-0.2.0.fwsc (the version must be VERSION.txt's)
 SYNTH_PACKAGE=1 ./build.sh       # + build/synth-UNTESTED.fwsc
 ```
 

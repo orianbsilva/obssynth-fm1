@@ -57,8 +57,11 @@ typedef struct {                 /* an oscillator's block (engine.c osc_setup) *
     uint32_t inc;                /* its increment (SUPER: the centre saw's) */
     int32_t wave;                /* STD: W_ */
     uint32_t pw;                 /* STD SQR's falling edge (phase), 0x80000000 = 50 % */
-    uint32_t sinc[6];            /* SUPER: the side saws' increments */
+    uint32_t sinc[6];            /* SUPER: the side voices' increments */
     int32_t center, side;        /* .. the centre's level, each side's, Q15 */
+    int32_t swave;               /* .. their shape: W_SAW, W_SQR, W_TRI or W_SIN (the oscillator's WAVE) */
+    uint32_t spw[6];             /* .. SQR: each side's width (DETUN spreads them; the centre's is 50 %) */
+    int32_t sfold;               /* .. TRI: the fold's gain on the sum, Q15 (32768: a soft sine shaping; more folds) */
     const int16_t *wa, *wb;      /* WT: the two waves POS lies between, at the level for the pitch */
     uint32_t wshift, wmask;      /* .. phase -> index, the level's length - 1 */
     int32_t wfrac;               /* .. POS between them, Q15 */
@@ -272,6 +275,21 @@ static inline int32_t noise_tick(voice_t *v, int32_t w, int32_t col)
 
 static inline int32_t saw_tick(uint32_t ph, uint32_t inc) { return (int32_t)(ph >> 16) - 32768 - blep(ph, inc); }
 
+/* one of SUPER's seven voices, shaped by sw: a saw; a square high until pw (two edges, band-limited); a triangle
+ * (continuous: no edge to smooth); a sine (seven detuned: the slow beating of an organ or a pad) */
+static inline int32_t super_tick(uint32_t ph, uint32_t inc, int32_t sw, uint32_t pw)
+{
+    if (sw == W_SQR)
+        return (ph < pw ? 32767 : -32767) + blep(ph, inc) - blep(ph - pw, inc);
+    if (sw == W_TRI) {
+        int32_t x = (int32_t)(ph >> 16) - 32768;
+        return 2 * (x < 0 ? -x : x) - 32767;
+    }
+    if (sw == W_SIN)
+        return sine_i(ph);
+    return saw_tick(ph, inc);
+}
+
 /* an oscillator's sample at phase ph (Q15): STD's wave; SUPER's centre saw and six side saws (sph, advanced here);
  * WT's two waves read at the phase (linear between the level's points) and between them at POS */
 /* GRAIN: a sample of o's grains in g: a grain starts every gevery samples (in a free slot, else over the oldest) at
@@ -331,13 +349,15 @@ static inline int32_t osc_val(const oscb_t *o, uint32_t ph, uint32_t *sph, gr_t 
     if (o->eng == OE_GR) {
         x = grain_val(o, g);
     } else if (o->eng == OE_SUPER) {
-        int32_t s = 0;
+        int32_t s = 0, sw = o->swave;
         for (k = 0; k < 6u; k++) {
-            s += saw_tick(sph[k], o->sinc[k]);
+            s += super_tick(sph[k], o->sinc[k], sw, o->spw[k]);
             sph[k] += o->sinc[k];
         }
-        x = (int32_t)(((int64_t)saw_tick(ph, o->inc) * o->center + (int64_t)s * o->side) >> 15);
-        return clamp(x, -65534, 65534);                  /* (seven saws: as loud as one, peaks up to x2) */
+        x = (int32_t)(((int64_t)super_tick(ph, o->inc, sw, 0x80000000u) * o->center + (int64_t)s * o->side) >> 15);
+        if (sw == W_TRI)                                 /* TRI: the sum folded, the more the wider DETUN */
+            x = sine_i((uint32_t)((int64_t)clamp(x, -32767, 32767) * o->sfold));
+        return clamp(x, -65534, 65534);                  /* (seven voices: as loud as one, peaks up to x2) */
     } else if (o->eng == OE_WT) {
         uint32_t i = ph >> o->wshift, j = (i + 1u) & o->wmask, f = (ph >> (o->wshift - 15u)) & 0x7FFFu;
         int32_t a0 = o->wa[i], a1 = o->wa[j], b0 = o->wb[i], b1 = o->wb[j];
