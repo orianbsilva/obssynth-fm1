@@ -23,7 +23,7 @@ static volatile uint32_t fm1_ms;     /* milliseconds since boot (main.c: TIMER5;
 /* USB: the update loader's own driver (usb.c, unchanged: the pinned loader is built from it), a class-compliant
  * USB-MIDI device with the M-UPGRADE update entry (ota.c, below) and the UBOOT soft key; no serial console */
 #ifndef FELUCCA_ID
-#define FELUCCA_ID "FM-1_917"    /* the package identity the update handshake answers (tools/build.py PRODUCT); ObsSynth's own */
+#define FELUCCA_ID "FM-1_627010"    /* the package identity the update handshake answers (tools/build.py PRODUCT); ObsSynth's own */
 #endif
 #define FELUCCA_OTA 1
 #define FELUCCA_CDC 0

@@ -43,7 +43,7 @@ The [manual](https://orianbsilva.github.io/obssynth-fm1/#manual) walks through e
 
 ## Install
 
-The release package is `obssynth-fm1-VERSION.fwsc`, identity **FM-1_917**, built and signed by GitHub from the
+The release package is `obssynth-fm1-VERSION.fwsc`, identity **FM-1_627010**, built and signed by GitHub from the
 tagged source with [fm1-build](https://github.com/zvenson/fm1-build) (see [Verify a package](#verify-a-package)).
 It is (or soon will be) on [The Firmware Hub](https://thefirmwarehub.com), which installs it from the browser.
 
@@ -73,7 +73,7 @@ flash chips are supported (the Puya P25Q80 and the UC25HQ80 of units sold since 
 ## Verify a package
 
 ```
-gh attestation verify obssynth-fm1-0.1.0.fwsc --repo orianbsilva/obssynth-fm1 \
+gh attestation verify obssynth-fm1-0.1.1.fwsc --repo orianbsilva/obssynth-fm1 \
     --signer-workflow zvenson/fm1-build/.github/workflows/build.yml
 ```
 
@@ -81,7 +81,7 @@ gh attestation verify obssynth-fm1-0.1.0.fwsc --repo orianbsilva/obssynth-fm1 \
 
 | What | How |
 | --- | --- |
-| The device firmware | `./build.sh` (the JieLi toolchain and AC79 SDK: [BUILDING.md](BUILDING.md)); `./build.sh --release 0.1.0` writes the release package |
+| The device firmware | `./build.sh` (the JieLi toolchain and AC79 SDK: [BUILDING.md](BUILDING.md)); `./build.sh --release 0.1.1` writes the release package |
 | The simulator | `tools/build_sim.sh`, then `python3 -m http.server -d build/sim 8000` ([docs/SIMULATOR.md](docs/SIMULATOR.md)); needs `cc` and `zig` (or `ZIG="python3 -m ziglang"`) |
 | The tests | `tests/run_tests.sh` (no hardware, no toolchain) |
 

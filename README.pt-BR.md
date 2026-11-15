@@ -43,7 +43,7 @@ O [manual](https://orianbsilva.github.io/obssynth-fm1/pt.html#manual) passa por 
 
 ## Instalar
 
-O pacote da release é `obssynth-fm1-VERSÃO.fwsc`, identidade **FM-1_917**, gerado e assinado pelo GitHub a partir do
+O pacote da release é `obssynth-fm1-VERSÃO.fwsc`, identidade **FM-1_627010**, gerado e assinado pelo GitHub a partir do
 código da tag, com o [fm1-build](https://github.com/zvenson/fm1-build) (ver [Conferir um pacote](#conferir-um-pacote)).
 Ele está (ou logo estará) no [The Firmware Hub](https://thefirmwarehub.com), que instala pelo navegador.
 
@@ -73,7 +73,7 @@ do FM-1 funcionam (o Puya P25Q80 e o UC25HQ80 das unidades vendidas desde o outo
 ## Conferir um pacote
 
 ```
-gh attestation verify obssynth-fm1-0.1.0.fwsc --repo orianbsilva/obssynth-fm1 \
+gh attestation verify obssynth-fm1-0.1.1.fwsc --repo orianbsilva/obssynth-fm1 \
     --signer-workflow zvenson/fm1-build/.github/workflows/build.yml
 ```
 
@@ -81,7 +81,7 @@ gh attestation verify obssynth-fm1-0.1.0.fwsc --repo orianbsilva/obssynth-fm1 \
 
 | O quê | Como |
 | --- | --- |
-| O firmware do aparelho | `./build.sh` (o toolchain da JieLi e o SDK AC79: [BUILDING.md](BUILDING.md)); `./build.sh --release 0.1.0` gera o pacote da release |
+| O firmware do aparelho | `./build.sh` (o toolchain da JieLi e o SDK AC79: [BUILDING.md](BUILDING.md)); `./build.sh --release 0.1.1` gera o pacote da release |
 | O simulador | `tools/build_sim.sh`, depois `python3 -m http.server -d build/sim 8000` ([docs/SIMULATOR.md](docs/SIMULATOR.md)); precisa de `cc` e `zig` (ou `ZIG="python3 -m ziglang"`) |
 | Os testes | `tests/run_tests.sh` (sem aparelho, sem toolchain) |
 

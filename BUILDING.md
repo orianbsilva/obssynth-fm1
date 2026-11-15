@@ -39,7 +39,7 @@ or the boot-loop guard after two crashes in the first 30 s) and [docs/RECOVERY.m
 
 ```
 ./build.sh                       # the app and the loader, with the image checks
-./build.sh --release 0.1.0       # + build/obssynth-fm1-0.1.0.fwsc (the version must be VERSION.txt's)
+./build.sh --release 0.1.1       # + build/obssynth-fm1-0.1.1.fwsc (the version must be VERSION.txt's)
 SYNTH_PACKAGE=1 ./build.sh       # + build/synth-UNTESTED.fwsc
 ```
 
@@ -72,7 +72,7 @@ first: M-VAVE's updater (M-UPGRADE) with the stock firmware, as in Hortator's st
 
 ## Identity and releases
 
-The package identity is **FM-1_917** (`tools/build.py` PRODUCT, `firmware/src/synth.c` FELUCCA_ID), ObsSynth's own:
+The package identity is **FM-1_627010** (`tools/build.py` PRODUCT, `firmware/src/synth.c` FELUCCA_ID), ObsSynth's own:
 it was free on The Firmware Hub when chosen. The update loader keeps Felucca's USB name (`ota-FM-1_900`): it is
 Felucca's pinned loader. The app accepts both FM-1 flash chips (JEDEC 0x856014 Puya P25Q80, 0xB36014 UC25HQ80).
 

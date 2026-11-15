@@ -49,7 +49,7 @@ SDK_SHA256 = {
     "cfg/eq_cfg_hw.bin": "41167491bffed4651750719c973d2758adeb9021a5670d02d6a53c85ed80ea7d",
 }
 
-PRODUCT = "FM-1_917"                # package identity: ObsSynth FM-1's own (free on thefirmwarehub.com, 11/2026)
+PRODUCT = "FM-1_627010"                # package identity: ObsSynth FM-1's own (627: OBS on a phone keypad; free on thefirmwarehub.com, 11/2026)
 
 
 def toolchain():

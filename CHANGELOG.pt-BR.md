@@ -2,6 +2,10 @@
 
 [English](CHANGELOG.md)
 
+## 0.1.1 - 2026-11-15
+
+- Pacote: identidade nova, FM-1_627010, só do ObsSynth (a FM-1_917 caía na faixa FM-1_91x do Felucca). Nada mais muda; a partir da 0.1.0, instale como sempre.
+
 ## 0.1.0 - 2026-11-12
 
 - Osciladores: dois por voz, cada um com seu motor (ALGORITHM): STD (SAW SQR TRI SIN RAMP FOLD FM OCT, moldadas pelo PW), SUPER (sete serras desafinadas), WT (quatro bancos de wavetable, sem aliasing) ou GRAIN (granular sobre três amostras).
