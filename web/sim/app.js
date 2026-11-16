@@ -10,6 +10,7 @@ import { needsResume, playbackSession } from './audio.js';
 import { tr, LANG } from './i18n.js';
 import { LAYOUTS, DECO_CLASS, blend } from './layout.js';   // (the portrait layout is not used: true proportions)
 import { initClips } from './clips.js';
+import { initMidiIn } from './midiin.js';
 
 // ---- the panel's elements (built once, placed per layout)
 const device = document.getElementById('device');
@@ -445,6 +446,17 @@ function bindPage() {
   });
   for (const b of document.querySelectorAll('.btn-ui, #power-on, .display button'))   // a mouse click leaves no focus
     b.addEventListener('mousedown', e => e.preventDefault());                         // behind: Space plays, not it
+  // a MIDI keyboard plays it: asked for with the power switch or the clips' MIDI ports button (clicks)
+  const midiIn = document.createElement('p');
+  midiIn.className = 'clips-status';
+  midiIn.id = 'midi-in';
+  powerNote.after(midiIn);
+  const askMidi = initMidiIn(send, () => !!node && !poweredOff, (names) => {
+    midiIn.textContent = names.length ? tr(`MIDI in: ${names.join(', ')}`, `Entrada MIDI: ${names.join(', ')}`) : '';
+  });
+  els.power.addEventListener('click', askMidi);
+  instTag.addEventListener('click', askMidi);
+  document.getElementById('clip-midi').addEventListener('click', askMidi);
   els.power.addEventListener('click', powerSwitch);
   instTag.addEventListener('click', powerSwitch);                 // the FM-1 panel's own switch (in view on phones)
   els.power.disabled = false;
